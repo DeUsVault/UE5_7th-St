@@ -1,0 +1,4 @@
+For Movement:
+CenterLocation is used for color
+XRadius is used for TiltAngle
+YRadius is used for ChevronSpeed
