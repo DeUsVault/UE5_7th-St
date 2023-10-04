@@ -38,7 +38,7 @@ void UPedestrianComponent::BeginPlay()
 	// ...
 
 	UPhaseManager* PhaseManager = GetOwner()->GetGameInstance()->GetSubsystem<UPhaseManager>();
-	PhaseManager->OnSwichPhase().AddUObject(this, &UPedestrianComponent::OnNewPhaseSwitch);
+	PhaseManager->OnSwitchPhase().AddUObject(this, &UPedestrianComponent::OnNewPhaseSwitch);
 	
 }
 

@@ -16,27 +16,9 @@ void UPhaseManager::Deinitialize()
 {
 }
 
-void UPhaseManager::SwichPhase(EPhaseType InPhaseType, EPhaseMode InPhaseMode)
+void UPhaseManager::SwitchPhase(EPhaseType InPhaseType, EPhaseMode InPhaseMode)
 {
 	USceneManagerCFX* SceneManager = GetWorld()->GetSubsystem<USceneManagerCFX>();
-
-	if (SceneManager->GetPedPhaseEnabled())
-	{
-		switch (InPhaseType)
-		{
-			case EPhaseType::BRTNoPed:
-				InPhaseType = EPhaseType::BRT;
-				break;
-
-			case EPhaseType::LRTNoPed:
-				InPhaseType = EPhaseType::LRT;
-				break;
-
-			case EPhaseType::DMUNoPed:
-				InPhaseType = EPhaseType::DMU;
-				break;
-		}
-	}
 
 	CurrentPhase = InPhaseType;
 	//GLog->Log(FString::Printf(TEXT("Switching phase: %s"), *UEnum::GetValueAsString(InPhaseType)));

@@ -21,5 +21,5 @@ void UPhaseButton::OnPhaseButtonClicked()
 {
 	UPhaseManager* Manager = GetGameInstance()->GetSubsystem<UPhaseManager>();
 	check(Manager);
-	Manager->SwichPhase(PhaseType, PhaseMode);
+	Manager->SwitchPhase(PhaseType, PhaseMode);
 }

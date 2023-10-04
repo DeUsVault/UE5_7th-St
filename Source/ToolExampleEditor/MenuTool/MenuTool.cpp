@@ -23,23 +23,11 @@ public:
 
 	virtual void RegisterCommands() override
 	{
-		UI_COMMAND(MenuCommand1, "Existing", "Existing phase", EUserInterfaceActionType::Button, FInputGesture());
-		UI_COMMAND(MenuCommand2, "BRT", "BRT phase", EUserInterfaceActionType::Button, FInputGesture());
-		UI_COMMAND(MenuCommand3, "BRT No Ped", "BRT no ped phase", EUserInterfaceActionType::Button, FInputGesture());
-		UI_COMMAND(MenuCommand4, "LRT", "LRT phase", EUserInterfaceActionType::Button, FInputGesture());
-		UI_COMMAND(MenuCommand5, "LRT No Ped", "LRT no ped phase", EUserInterfaceActionType::Button, FInputGesture());
-		UI_COMMAND(MenuCommand6, "DMU", "DMU phase", EUserInterfaceActionType::Button, FInputGesture());
-		UI_COMMAND(MenuCommand7, "DMU No Ped", "DMU no ped phase", EUserInterfaceActionType::Button, FInputGesture());
+		UI_COMMAND(MenuCommand1, "Proposed", "Proposed phase", EUserInterfaceActionType::Button, FInputGesture());
 	}
 
 public:
 	TSharedPtr<FUICommandInfo> MenuCommand1;
-	TSharedPtr<FUICommandInfo> MenuCommand2;
-	TSharedPtr<FUICommandInfo> MenuCommand3;
-	TSharedPtr<FUICommandInfo> MenuCommand4;
-	TSharedPtr<FUICommandInfo> MenuCommand5;
-	TSharedPtr<FUICommandInfo> MenuCommand6;
-	TSharedPtr<FUICommandInfo> MenuCommand7;
 };
 
 void MenuTool::MapCommands()
@@ -49,36 +37,6 @@ void MenuTool::MapCommands()
 	CommandList->MapAction(
 		Commands.MenuCommand1,
 		FExecuteAction::CreateSP(this, &MenuTool::MenuCommand1),
-		FCanExecuteAction());
-
-	CommandList->MapAction(
-		Commands.MenuCommand2,
-		FExecuteAction::CreateSP(this, &MenuTool::MenuCommand2),
-		FCanExecuteAction());
-
-	CommandList->MapAction(
-		Commands.MenuCommand3,
-		FExecuteAction::CreateSP(this, &MenuTool::MenuCommand3),
-		FCanExecuteAction());
-
-	CommandList->MapAction(
-		Commands.MenuCommand4,
-		FExecuteAction::CreateSP(this, &MenuTool::MenuCommand4),
-		FCanExecuteAction());
-
-	CommandList->MapAction(
-		Commands.MenuCommand5,
-		FExecuteAction::CreateSP(this, &MenuTool::MenuCommand5),
-		FCanExecuteAction());
-
-	CommandList->MapAction(
-		Commands.MenuCommand6,
-		FExecuteAction::CreateSP(this, &MenuTool::MenuCommand6),
-		FCanExecuteAction());
-
-	CommandList->MapAction(
-		Commands.MenuCommand7,
-		FExecuteAction::CreateSP(this, &MenuTool::MenuCommand7),
 		FCanExecuteAction());
 }
 
@@ -103,12 +61,6 @@ void MenuTool::OnShutdownModule()
 void MenuTool::MakeMenuEntry(FMenuBuilder &menuBuilder)
 {
 	menuBuilder.AddMenuEntry(MenuToolCommands::Get().MenuCommand1);
-	menuBuilder.AddMenuEntry(MenuToolCommands::Get().MenuCommand2);
-	menuBuilder.AddMenuEntry(MenuToolCommands::Get().MenuCommand3);
-	menuBuilder.AddMenuEntry(MenuToolCommands::Get().MenuCommand4);
-	menuBuilder.AddMenuEntry(MenuToolCommands::Get().MenuCommand5);
-	menuBuilder.AddMenuEntry(MenuToolCommands::Get().MenuCommand6);
-	menuBuilder.AddMenuEntry(MenuToolCommands::Get().MenuCommand7);
 
 	//menuBuilder.AddSubMenu(
 	//	FText::FromString("Sub Menu"),
@@ -149,47 +101,9 @@ void MenuTool::MakeSubMenu(FMenuBuilder &menuBuilder)
 
 void MenuTool::MenuCommand1()
 {
-	UE_LOG(LogClass, Log, TEXT("Existing"));
-	InvokePhase(EPhaseType::Existing);
+	UE_LOG(LogClass, Log, TEXT("Proposed"));
+	InvokePhase(EPhaseType::Proposed);
 }
-
-void MenuTool::MenuCommand2()
-{
-	UE_LOG(LogClass, Log, TEXT("BRT"));
-	InvokePhase(EPhaseType::BRT);
-}
-
-void MenuTool::MenuCommand3()
-{
-	UE_LOG(LogClass, Log, TEXT("BRT No Ped"));
-	InvokePhase(EPhaseType::BRTNoPed);
-}
-
-void MenuTool::MenuCommand4()
-{
-	UE_LOG(LogClass, Log, TEXT("LRT"));
-	InvokePhase(EPhaseType::LRT);
-}
-
-void MenuTool::MenuCommand5()
-{
-	UE_LOG(LogClass, Log, TEXT("LRT No Ped"));
-	InvokePhase(EPhaseType::LRTNoPed);
-}
-
-void MenuTool::MenuCommand6()
-{
-	UE_LOG(LogClass, Log, TEXT("DMU"));
-	InvokePhase(EPhaseType::DMU);
-}
-
-void MenuTool::MenuCommand7()
-{
-	UE_LOG(LogClass, Log, TEXT("DMU No Ped"));
-	InvokePhase(EPhaseType::DMUNoPed);
-
-}
-
 
 FReply MenuTool::AddTag()
 {

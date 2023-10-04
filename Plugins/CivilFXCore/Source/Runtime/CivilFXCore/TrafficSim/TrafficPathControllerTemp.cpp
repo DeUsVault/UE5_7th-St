@@ -44,7 +44,7 @@ void UTrafficPathControllerTemp::BeginPlay()
 
 
 	UPhaseManager* PhaseManager = GetOwner()->GetGameInstance()->GetSubsystem<UPhaseManager>();
-	PhaseManager->OnSwichPhase().AddUObject(this, &UTrafficPathControllerTemp::OnNewPhaseSwitch);
+	PhaseManager->OnSwitchPhase().AddUObject(this, &UTrafficPathControllerTemp::OnNewPhaseSwitch);
 
 	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 }

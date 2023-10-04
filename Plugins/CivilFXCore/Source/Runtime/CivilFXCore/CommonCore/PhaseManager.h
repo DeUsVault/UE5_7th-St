@@ -16,13 +16,7 @@
 UENUM()
 enum class EPhaseType : uint8
 {
-	Existing = 0,
-	BRT,
-	BRTNoPed,
-	LRT,
-	LRTNoPed,
-	DMU,
-	DMUNoPed,
+	Proposed = 0,
 	None
 };
 
@@ -43,7 +37,7 @@ class CIVILFXCORE_API UPhaseManager : public UGameInstanceSubsystem
 public:
 
 	DECLARE_EVENT_TwoParams(UPhaseManager, FOnPhaseSwitched, EPhaseType, EPhaseMode)
-	FOnPhaseSwitched& OnSwichPhase() { return PhaseSwitchedEvent; }
+	FOnPhaseSwitched& OnSwitchPhase() { return PhaseSwitchedEvent; }
 
 	/**
 		Call to switch to a new phase.
@@ -52,7 +46,7 @@ public:
 			EPhaseType: New Type
 			EPhaseMode: New Mode
 	*/
-	void SwichPhase(EPhaseType InPhaseType, EPhaseMode InPhaseMode = EPhaseMode::Single);
+	void SwitchPhase(EPhaseType InPhaseType, EPhaseMode InPhaseMode = EPhaseMode::Single);
 	EPhaseType GetCurrentPhase() const;
 
 protected:

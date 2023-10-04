@@ -75,7 +75,7 @@ void UNavigationPanel::NativeConstruct()
 	/** Bind delegates*/
 	EditAnimatedCameraButton->OnClicked.AddDynamic(this, &UNavigationPanel::HandleEditAnimatedCameraButtonClicked);
 	AddStillCameraButton->OnClicked.AddDynamic(this, &UNavigationPanel::HandleAddStillCameraButtonClicked);
-	GetGameInstance()->GetSubsystem<UPhaseManager>()->OnSwichPhase().AddUObject(this, &UNavigationPanel::HandleNewPhaseSwitch);
+	GetGameInstance()->GetSubsystem<UPhaseManager>()->OnSwitchPhase().AddUObject(this, &UNavigationPanel::HandleNewPhaseSwitch);
 }
 
 void UNavigationPanel::NativeDestruct()

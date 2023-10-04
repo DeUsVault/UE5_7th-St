@@ -156,58 +156,6 @@ bool USceneManagerCFX::GetLabelsEnabled() const
 }
 
 
-void USceneManagerCFX::SetPedPhaseEnabled(bool bInEnabled)
-{
-	UPhaseManager* PhaseManager = GetWorld()->GetGameInstance()->GetSubsystem<UPhaseManager>();
-
-	bPedEnabled = bInEnabled;
-
-	if (bPedEnabled)
-	{
-		switch (PhaseManager->GetCurrentPhase())
-		{
-			case EPhaseType::BRTNoPed:
-				PhaseManager->SwichPhase(EPhaseType::BRT);
-				break;
-
-			case EPhaseType::LRTNoPed:
-				PhaseManager->SwichPhase(EPhaseType::LRT);
-				break;
-
-			case EPhaseType::DMUNoPed:
-				PhaseManager->SwichPhase(EPhaseType::DMU);
-				break;
-				
-		}
-	}
-
-	if (!bPedEnabled)
-	{
-		switch (PhaseManager->GetCurrentPhase())
-		{
-			case EPhaseType::BRT:
-				PhaseManager->SwichPhase(EPhaseType::BRTNoPed);
-				break;
-
-			case EPhaseType::LRT:
-				PhaseManager->SwichPhase(EPhaseType::LRTNoPed);
-				break;
-
-			case EPhaseType::DMU:
-				PhaseManager->SwichPhase(EPhaseType::DMUNoPed);
-				break;
-		}
-	}
-
-}
-
-
-bool USceneManagerCFX::GetPedPhaseEnabled() const
-{
-	return bPedEnabled;
-}
-
-
 void USceneManagerCFX::SetRayTracingEnabled(bool bInEnabled)
 {
 	FString RTCommandString;

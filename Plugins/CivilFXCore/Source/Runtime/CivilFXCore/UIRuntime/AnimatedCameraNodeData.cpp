@@ -10,7 +10,7 @@ FAnimatedCameraNodeData::FAnimatedCameraNodeData() :
 	CameraType(TEXT("Orbit")),
 	Duration(10),
 	Category(TEXT("Default")),
-	Phases{ UEnum::GetDisplayValueAsText(EPhaseType::Existing).ToString() },
+	Phases{ UEnum::GetDisplayValueAsText(EPhaseType::Proposed).ToString() },
 	CenterLocation{FVector::ZeroVector},
 	Height{1000.0f},
 	XRadius{1000.0f},

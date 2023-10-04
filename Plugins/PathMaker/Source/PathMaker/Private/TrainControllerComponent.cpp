@@ -58,7 +58,7 @@ void UTrainControllerComponent::BeginPlay()
 	}
 
 	PhaseManager = GetOwner()->GetGameInstance()->GetSubsystem<UPhaseManager>();
-	PhaseManager->OnSwichPhase().AddUObject(this, &UTrainControllerComponent::OnNewPhaseSwitch);
+	PhaseManager->OnSwitchPhase().AddUObject(this, &UTrainControllerComponent::OnNewPhaseSwitch);
 
 	HideAllTrainCars();
 	GetWorld()->GetTimerManager().SetTimer(DelayHandler, this, &UTrainControllerComponent::DelayTrain, DelayTime, false, -1.0f);

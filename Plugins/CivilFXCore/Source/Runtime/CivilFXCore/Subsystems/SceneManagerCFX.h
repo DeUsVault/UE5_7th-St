@@ -32,10 +32,6 @@ public:
 	bool GetLabelsEnabled() const;
 
 	UFUNCTION(BlueprintCallable)
-	void SetPedPhaseEnabled(bool bInEnabled);
-	bool GetPedPhaseEnabled() const;
-
-	UFUNCTION(BlueprintCallable)
 	void SetRayTracingEnabled(bool bInEnabled);
 	bool GetRayTracingEnabled() const;
 

@@ -23,12 +23,6 @@ protected:
 	//************************
 	// UI Command functions
 	void MenuCommand1();
-	void MenuCommand2();
-	void MenuCommand3();
-	void MenuCommand4();
-	void MenuCommand5();
-	void MenuCommand6();
-	void MenuCommand7();
 
 	FName TagToAdd;
 

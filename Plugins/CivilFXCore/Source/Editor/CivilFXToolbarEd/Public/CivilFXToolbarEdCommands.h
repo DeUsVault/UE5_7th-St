@@ -22,8 +22,5 @@ public:
 	virtual void RegisterCommands() override;
 
 public:
-	TSharedPtr< FUICommandInfo > ExistingAction;
-	TSharedPtr<FUICommandInfo> ProposedRecessedAction;
-	TSharedPtr< FUICommandInfo > ProposedNorthAction;
-	TSharedPtr<FUICommandInfo> ProposedSouthAction;
+	TSharedPtr<FUICommandInfo> ProposedAction;
 };

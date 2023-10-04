@@ -40,40 +40,9 @@ void FCivilFXToolbarEd::StartupModule()
 
 	//mapping actions
 	Commands->MapAction(
-		FCivilFXToolbarEdCommands::Get().ExistingAction,
-		FExecuteAction::CreateRaw(this, &FCivilFXToolbarEd::InvokePhase, EPhaseType::Existing),
+		FCivilFXToolbarEdCommands::Get().ProposedAction,
+		FExecuteAction::CreateRaw(this, &FCivilFXToolbarEd::InvokePhase, EPhaseType::Proposed),
 		FCanExecuteAction());
-
-	Commands->MapAction(
-		FCivilFXToolbarEdCommands::Get().ProposedRecessedAction,
-		FExecuteAction::CreateRaw(this, &FCivilFXToolbarEd::InvokePhase, EPhaseType::BRT),
-		FCanExecuteAction());
-
-	Commands->MapAction(
-		FCivilFXToolbarEdCommands::Get().ProposedRecessedAction,
-		FExecuteAction::CreateRaw(this, &FCivilFXToolbarEd::InvokePhase, EPhaseType::BRTNoPed),
-		FCanExecuteAction());
-
-	Commands->MapAction(
-		FCivilFXToolbarEdCommands::Get().ProposedNorthAction,
-		FExecuteAction::CreateRaw(this, &FCivilFXToolbarEd::InvokePhase, EPhaseType::LRT),
-		FCanExecuteAction());
-
-	Commands->MapAction(
-		FCivilFXToolbarEdCommands::Get().ProposedNorthAction,
-		FExecuteAction::CreateRaw(this, &FCivilFXToolbarEd::InvokePhase, EPhaseType::LRTNoPed),
-		FCanExecuteAction());
-
-	Commands->MapAction(
-		FCivilFXToolbarEdCommands::Get().ProposedSouthAction,
-		FExecuteAction::CreateRaw(this, &FCivilFXToolbarEd::InvokePhase, EPhaseType::DMU),
-		FCanExecuteAction());
-
-	Commands->MapAction(
-		FCivilFXToolbarEdCommands::Get().ProposedSouthAction,
-		FExecuteAction::CreateRaw(this, &FCivilFXToolbarEd::InvokePhase, EPhaseType::DMUNoPed),
-		FCanExecuteAction());
-
 
 	//
 	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
@@ -138,12 +107,7 @@ TSharedRef<SWidget> FCivilFXToolbarEd::GenerateCivilFXMenu(TSharedRef<FUICommand
 		{
 			InMenuBuilder.BeginSection("CivilFXPhaseMenu", LOCTEXT("Phase", "Phasing"));
 			{
-				InMenuBuilder.AddMenuEntry(FCivilFXToolbarEdCommands::Get().ExistingAction);
-				InMenuBuilder.AddMenuEntry(FCivilFXToolbarEdCommands::Get().ProposedRecessedAction);
-				InMenuBuilder.AddMenuEntry(FCivilFXToolbarEdCommands::Get().ProposedNorthAction);
-				InMenuBuilder.AddMenuEntry(FCivilFXToolbarEdCommands::Get().ProposedSouthAction);
-
-
+				InMenuBuilder.AddMenuEntry(FCivilFXToolbarEdCommands::Get().ProposedAction);
 			}
 			InMenuBuilder.EndSection();
 		}
