@@ -40,7 +40,8 @@ void UTrafficPathControllerTemp::BeginPlay()
 	//meters
 	SpeedMPH = UKismetMathLibrary::RandomFloatInRange(30.0f, 50.0f);
 
-	SetComponentTickEnabled(false);
+	SetComponentTickEnabled(true);
+	InitializeVehicles();
 
 
 	UPhaseManager* PhaseManager = GetOwner()->GetGameInstance()->GetSubsystem<UPhaseManager>();
@@ -144,14 +145,14 @@ void UTrafficPathControllerTemp::AdjustLocationToTerrainMesh(FVector& InOutLocat
 void UTrafficPathControllerTemp::InitializeVehicles()
 {
 	GLog->Log("Init");
-	////for (float Distance = 0; Distance < PathLength; Distance += VehicleDistance * 5)
-	////{
-	//	FVehicleControllerTemp VehicleController;
-	//	VehicleController.CurvePos = 0;
-	//	VehicleController.CurrentLane = UKismetMathLibrary::RandomIntegerInRange(0, LanesCount - 1);
-	//	VehicleController.VehicleID = VehiclesManager->CreateVehicle(bAllowTruck);
-	//	Vehicles.Insert(VehicleController, 0);
-	////}
+	for (float Distance = 0; Distance < PathLength; Distance += VehicleDistance * 2)
+	{
+		FVehicleControllerTemp VehicleController;
+		VehicleController.CurvePos = 0;
+		VehicleController.CurrentLane = UKismetMathLibrary::RandomIntegerInRange(0, LanesCount - 1);
+		VehicleController.VehicleID = VehiclesManager->CreateVehicle(bAllowTruck);
+		Vehicles.Insert(VehicleController, 0);
+	}
 	bVehiclesInitialized = true;
 }
 
