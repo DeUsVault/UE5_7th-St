@@ -31,7 +31,7 @@ void UPhasePanel::NativeConstruct()
 
 	/**/
 	// Set to LRT on start-up
-	CurrentSelectedButton = PhaseButtons[2];
+	CurrentSelectedButton = PhaseButtons[0];
 
 
 	//invoke the default button

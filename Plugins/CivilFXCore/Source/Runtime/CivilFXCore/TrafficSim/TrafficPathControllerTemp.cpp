@@ -38,15 +38,26 @@ void UTrafficPathControllerTemp::BeginPlay()
 	VehicleDistance = 50.0f;
 	GapToRespawn = VehicleDistance * 2 / LanesCount;
 	//meters
-	SpeedMPH = UKismetMathLibrary::RandomFloatInRange(30.0f, 50.0f);
+	SpeedMPH = UKismetMathLibrary::RandomFloatInRange(30.0f, 40.0f);
 
-	SetComponentTickEnabled(false);
+	if (TrafficPath->PathType == EPathType::Freeway)
+		SpeedMPH = SpeedMPH * 2;
 
 
 	UPhaseManager* PhaseManager = GetOwner()->GetGameInstance()->GetSubsystem<UPhaseManager>();
 	PhaseManager->OnSwitchPhase().AddUObject(this, &UTrafficPathControllerTemp::OnNewPhaseSwitch);
 
 	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	// Set cars on start-up if phase matches
+	if (PhaseManager->GetCurrentPhase() == PhaseType)
+	{
+		InitializeVehicles();
+		SetComponentTickEnabled(true);
+	}
+
+	else
+		SetComponentTickEnabled(false);
 }
 
 
@@ -77,7 +88,7 @@ void UTrafficPathControllerTemp::ReSpawnVehicle(float DeltaTime)
 			CurrentSpawnLane = (CurrentSpawnLane + 1) % LanesCount;
 		}
 
-		GapToRespawn = TrafficPath->GetPathLength() / 2;
+		GapToRespawn = VehicleDistance * 2 / LanesCount;
 	}
 	GapToRespawn -= (DeltaTime * SpeedMPH * MPH2METERSPH);
 }
@@ -144,14 +155,14 @@ void UTrafficPathControllerTemp::AdjustLocationToTerrainMesh(FVector& InOutLocat
 void UTrafficPathControllerTemp::InitializeVehicles()
 {
 	GLog->Log("Init");
-	////for (float Distance = 0; Distance < PathLength; Distance += VehicleDistance * 5)
-	////{
-	//	FVehicleControllerTemp VehicleController;
-	//	VehicleController.CurvePos = 0;
-	//	VehicleController.CurrentLane = UKismetMathLibrary::RandomIntegerInRange(0, LanesCount - 1);
-	//	VehicleController.VehicleID = VehiclesManager->CreateVehicle(bAllowTruck);
-	//	Vehicles.Insert(VehicleController, 0);
-	////}
+	for (float Distance = 0; Distance < PathLength; Distance += (VehicleDistance * 2))
+	{
+		FVehicleControllerTemp VehicleController;
+		VehicleController.CurvePos = Distance;
+		VehicleController.CurrentLane = UKismetMathLibrary::RandomIntegerInRange(0, LanesCount - 1);
+		VehicleController.VehicleID = VehiclesManager->CreateVehicle(bAllowTruck);
+		Vehicles.Insert(VehicleController, 0);
+	}
 	bVehiclesInitialized = true;
 }
 

@@ -186,9 +186,6 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Path Settings")
-	EPathType PathType;
-
-	UPROPERTY(EditAnywhere, Category = "Path Settings")
 	float WidthPerLane = 365.76f; //12ft : 3.6576m
 
 	UPROPERTY(EditAnywhere, Category = "Path Settings")
@@ -208,6 +205,9 @@ private:
 	TSharedPtr<FSplineBuilder> SplineBuilder;
 
 public:
+	UPROPERTY(EditAnywhere, Category = "Path Settings")
+	EPathType PathType;
+
 	UPROPERTY(EditAnywhere, Category = "Path Settings")
 	bool bDrawDebug = true;
 };
