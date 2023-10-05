@@ -28,7 +28,7 @@ void FSplineBuilder::BuildPath()
 
 	for (int i = 1; i < TotalSubdivisions + 1; i++)
 	{
-	
+
 		float CurrentSegment = SegmentLength * i;
 		FVector CurrentPoint = GetPoint(CurrentSegment);
 		//Convert the distance to meters before adding it
@@ -102,7 +102,7 @@ FVector FSplineBuilder::GetPoint(float Time) const
 
 	return .5f *
 		(
-		(-a + 3.0f * b - 3.0f * c + d) * (U * U * U)
+			(-a + 3.0f * b - 3.0f * c + d) * (U * U * U)
 			+ (2.0f * a - 5.0f * b + 4.0f * c - d) * (U * U)
 			+ (-a + c) * U
 			+ 2.0f * b
@@ -273,7 +273,7 @@ void UTrafficPath::OnComponentCreated()
 		}
 	}
 	MarkRenderStateDirty();
-	
+
 }
 
 TSharedPtr<FSplineBuilder> UTrafficPath::GetSplineBuilder(bool bForceRebuild)
@@ -404,7 +404,7 @@ void UTrafficPath::Draw(FPrimitiveDrawInterface* PDI, const FSceneView* View, co
 		return;
 	}
 
-	
+
 
 	//cast away constness to get splinebuilder
 	UTrafficPath* TrafficPathComp = const_cast<UTrafficPath*>(TrafficPath);
@@ -572,18 +572,18 @@ void UTrafficPath::Draw(FPrimitiveDrawInterface* PDI, const FSceneView* View, co
 		LeftWidth = FVector::CrossProduct(Dir, FVector::UpVector) * ArrowShaftWidth;
 		FVector ArrowHeadLeftWidth = FVector::CrossProduct(Dir, FVector::UpVector) * ArrowHeadWidth;
 		/*
-		      P6
+			  P6
 			  /\
 			 /  \
 			/    \
 		   /      \
 		P4/_P2__P3_\P5
 			| 	 |
-		  	|	 |
+			|	 |
 			|	 |
 			|____|
 			P0  P1
-		
+
 		*/
 		FVector P0 = Nodes[i] + LeftWidth;
 		FVector P1 = Nodes[i] - LeftWidth;
@@ -600,11 +600,31 @@ void UTrafficPath::Draw(FPrimitiveDrawInterface* PDI, const FSceneView* View, co
 
 		PDI->DrawLine(P2, P4, FLinearColor::Gray, SDPG_Foreground);
 		PDI->DrawLine(P3, P5, FLinearColor::Gray, SDPG_Foreground);
-		
+
 		PDI->DrawLine(P4, P6, FLinearColor::Gray, SDPG_Foreground);
 		PDI->DrawLine(P5, P6, FLinearColor::Gray, SDPG_Foreground);
-	}
 
+
+		// draw stop points
+
+			/*
+			   P6 ________ P7
+				 /        \
+			 P4 /          \ P5
+			   |            |
+			   |            |
+			 P2 \          / P3
+				 \________/
+				 P0      P1
+
+			*/
+
+		FVector P0S = Nodes[i] + LeftWidth;
+		FVector P1S = Nodes[i] - LeftWidth;
+
+		PDI->DrawLine(P0S, P1S, FLinearColor::Red, SDPG_Foreground);
+
+	}
 }
 
 FBoxSphereBounds UTrafficPath::CalcBounds(const FTransform& LocalToWorld) const
