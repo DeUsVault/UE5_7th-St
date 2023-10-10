@@ -29,11 +29,11 @@ void UPedestrianComponent::BeginPlay()
 	SplineFromParent = Cast<APathSpline>(GetOwner())->SplineComponent;
 	CurrentSpawnTime = SpawnTimerMin;
 	this->GetWorld()->GetTimerManager().SetTimer(ShouldSpawnMoverHandler, this, &UPedestrianComponent::ShouldSpawnAMover, FMath::RandRange(SpawnTimerMin, SpawnTimerMax), true, -1.0f);
-	this->GetWorld()->GetTimerManager().PauseTimer(ShouldSpawnMoverHandler);
+	//this->GetWorld()->GetTimerManager().PauseTimer(ShouldSpawnMoverHandler);
 	this->GetWorld()->GetTimerManager().SetTimer(UpdatePositionHandler, this, &UPedestrianComponent::UpdatePosition, 0.03f, true, -1.0f);
-	this->GetWorld()->GetTimerManager().PauseTimer(UpdatePositionHandler);
+	//this->GetWorld()->GetTimerManager().PauseTimer(UpdatePositionHandler);
 	this->GetWorld()->GetTimerManager().SetTimer(MovingObjectRespawnHandler, this, &UPedestrianComponent::MovingObjectRespawn, FMath::RandRange(SpawnTimerMin, SpawnTimerMax), true, -1.0f);
-	this->GetWorld()->GetTimerManager().PauseTimer(MovingObjectRespawnHandler);
+	//this->GetWorld()->GetTimerManager().PauseTimer(MovingObjectRespawnHandler);
 
 	// ...
 
