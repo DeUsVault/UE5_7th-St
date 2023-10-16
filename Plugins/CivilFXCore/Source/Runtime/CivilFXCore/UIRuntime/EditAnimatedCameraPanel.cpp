@@ -45,7 +45,7 @@ void UEditAnimatedCameraPanel::NativeConstruct()
 	/** Turn off viewport camera */
 	//PlayerCameraManager->PCOwner->GetLocalPlayer()->ViewportClient->EngineShowFlags.Rendering = false;
 	//GetWorld()->GetGameViewport()->GetGameViewport()->GetClient()->GetEngineShowFlags()->Rendering = false;
-	GetWorld()->GetFirstPlayerController()->GetLocalPlayer()->ViewportClient->EngineShowFlags.Rendering = false;
+	//GetWorld()->GetFirstPlayerController()->GetLocalPlayer()->ViewportClient->EngineShowFlags.Rendering = false;
 }
 
 void UEditAnimatedCameraPanel::OnPanelSelected()

@@ -199,7 +199,7 @@ private:
 
 
 
-	UPROPERTY(Category = "Path Settings", VisibleAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Path Settings")
 	TArray<FVector> Nodes;
 
 	TSharedPtr<FSplineBuilder> SplineBuilder;
