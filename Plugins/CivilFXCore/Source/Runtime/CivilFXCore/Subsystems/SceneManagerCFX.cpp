@@ -81,26 +81,24 @@ void USceneManagerCFX::SetFoliageEnabled(bool bInEnabled)
 			for (ULevelStreaming* streamingLevel : streamedLevels)
 			{
 				FString levelName = streamingLevel->GetWorldAssetPackageName();			
-				if (levelName.Contains("Trees"))
+
+				TArray<AActor*> Foliages;
+				UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
+				for (AActor* Foliage : Foliages)
 				{
-					TArray<AActor*> Foliages;
-					UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
-					for (AActor* Foliage : Foliages)
+					UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
+
+					if (PhaseElement)
 					{
-						UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
-
-						if (PhaseElement)
+						for (EPhaseType Phase : PhaseElement->PhaseTypes)
 						{
-							for (EPhaseType Phase : PhaseElement->PhaseTypes)
-							{
-								if (Phase == PhaseManager->GetCurrentPhase())
-									Foliage->SetActorHiddenInGame(!bFoliageEnabled);
-							}
+							if (Phase == PhaseManager->GetCurrentPhase() && Foliage->ActorHasTag("Trees"))
+								Foliage->SetActorHiddenInGame(!bFoliageEnabled);
 						}
-
-						//else
-						//	CachedFoliages.AddUnique(Foliage);
 					}
+
+					//else
+					//	CachedFoliages.AddUnique(Foliage);
 				}
 			}
 			//~
