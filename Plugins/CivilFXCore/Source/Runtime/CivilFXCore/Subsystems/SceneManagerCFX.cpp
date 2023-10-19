@@ -86,15 +86,9 @@ void USceneManagerCFX::SetFoliageEnabled(bool bInEnabled)
 				UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
 				for (AActor* Foliage : Foliages)
 				{
-					UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
-
-					if (PhaseElement)
+					if (Foliage->ActorHasTag("Trees"))
 					{
-						for (EPhaseType Phase : PhaseElement->PhaseTypes)
-						{
-							if (Phase == PhaseManager->GetCurrentPhase() && Foliage->ActorHasTag("Trees"))
-								Foliage->SetActorHiddenInGame(!bFoliageEnabled);
-						}
+						Foliage->SetActorHiddenInGame(!bFoliageEnabled);
 					}
 
 					//else
