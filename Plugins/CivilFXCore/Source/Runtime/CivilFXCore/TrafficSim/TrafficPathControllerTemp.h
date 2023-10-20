@@ -68,7 +68,9 @@ private:
 
 	TSharedPtr<FSplineBuilder> Spline;
 
+	UFUNCTION(BlueprintCallable)
 	void ReCreateAllVehicles();
+	UFUNCTION(BlueprintCallable)
 	void ReleaseAllVehicles();
 
 	bool bVehiclesInitialized;
