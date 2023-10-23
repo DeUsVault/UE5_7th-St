@@ -75,9 +75,9 @@ public:
 		void OnSpawnTimerChange();
 	UFUNCTION()
 		void OnNewPhaseSwitch(EPhaseType NewPhaseType, EPhaseMode NewPhaseMode);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 		void ResetLocation();
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 		void HideAllPedestrians();
 
 private:
