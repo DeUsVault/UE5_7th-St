@@ -15,7 +15,7 @@ void AMainHUD::BeginPlay()
 {
 	Super::BeginPlay();
 	check(MainHUDWidgetClass);
-	UUserWidget* MainHUDWidget = CreateWidget(GetWorld(), MainHUDWidgetClass);
+	MainHUDWidget = CreateWidget(GetWorld(), MainHUDWidgetClass);
 	check(MainHUDWidget);
 	MainHUDWidget->AddToViewport();
 }

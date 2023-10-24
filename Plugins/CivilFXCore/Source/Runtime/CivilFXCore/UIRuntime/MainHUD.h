@@ -18,6 +18,9 @@ public:
 	AMainHUD();
 	virtual void BeginPlay() override;
 
+	UPROPERTY(BlueprintReadOnly)
+	UUserWidget* MainHUDWidget;
+
 protected:
 	UPROPERTY()
 	TSubclassOf<class UUserWidget> MainHUDWidgetClass;
