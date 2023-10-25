@@ -347,7 +347,7 @@ void UEditAnimatedCamFocusviewMovement::UpdateProjectedLines()
     {
         FVector Location = Object->GetActorLocation();
         TArray<FHitResult> HitResults;
-        DrawLineTraces(GetWorld(), Location, Location + FVector::DownVector * WORLD_MAX, HitResults, 0.02f);
+        //DrawLineTraces(GetWorld(), Location, Location + FVector::DownVector * WORLD_MAX, HitResults, 0.02f);
     }
 }
 
