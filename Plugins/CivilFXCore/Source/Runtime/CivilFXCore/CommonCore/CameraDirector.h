@@ -7,6 +7,7 @@
 #include "CivilFXCore/TrafficSim/TrafficPath.h"
 #include "CameraDirector.generated.h"
 
+
 struct FCameraSplineData
 {
 	TSharedPtr<FSplineBuilder> Spline;
@@ -97,6 +98,7 @@ public:
 	void OnBeginCameraDirectorMove(const TArray<FVector>& InLocations, const TArray<FRotator>& InRotations, float Duration, float HeightOffset, bool bPreview=false, bool bInLoop=true);
 	void MoveCamera(float DeltaTime);
 	void StopCamera();
+	void ResumeCamera();
 	void GetViewAtTimeline(float Timeline, FVector& OutLocation, FRotator& OutRotation) const;
 
 protected:

@@ -28,6 +28,7 @@ void ACameraDirector::BeginPlay()
 void ACameraDirector::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 	MoveCamera(DeltaTime);
 }
 
@@ -139,6 +140,11 @@ void ACameraDirector::MoveCamera(float DeltaTime)
 void ACameraDirector::StopCamera()
 {
 	SetActorTickEnabled(false);
+}
+
+void ACameraDirector::ResumeCamera()
+{
+	SetActorTickEnabled(true);
 }
 
 void ACameraDirector::GetViewAtTimeline(float Timeline, FVector& OutLocation, FRotator& OutRotation) const

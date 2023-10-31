@@ -317,6 +317,9 @@ static void InitializeCFXPawnInputBindings()
 
 		UPlayerInput::AddEngineDefinedActionMapping(FInputActionKeyMapping("L_Shift", EKeys::LeftShift));
 
+		UPlayerInput::AddEngineDefinedActionMapping(FInputActionKeyMapping("_Space", EKeys::SpaceBar));
+
+
 		//Added for UI control
 		UPlayerInput::AddEngineDefinedActionMapping(FInputActionKeyMapping("Delete", EKeys::Delete));
 
@@ -361,6 +364,9 @@ void ACivilFXPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAction("L_Shift", IE_Pressed, this, &ACivilFXPawn::HandleLeftShift);
 	PlayerInputComponent->BindAction("L_Shift", IE_Released, this, &ACivilFXPawn::HandleLeftShift);
+
+	PlayerInputComponent->BindAction("_Space", IE_Pressed, this, &ACivilFXPawn::HandleSpaceBar);
+	//PlayerInputComponent->BindAction("_Space", IE_Released, this, &ACivilFXPawn::HandleSpaceBar);
 
 
 	//touch
@@ -579,6 +585,28 @@ void ACivilFXPawn::HandleLeftShift()
 	}
 }
 
+
+void ACivilFXPawn::HandleSpaceBar()
+{
+	if (CameraDirector == nullptr)
+	{
+		return;
+	}
+
+	if (bCameraPaused)
+	{
+		CameraDirector->ResumeCamera();
+	}
+
+	else
+	{
+		CameraDirector->StopCamera();
+	}
+
+	bCameraPaused = !bCameraPaused;
+
+}
+
 void ACivilFXPawn::HandleMouseInput()
 {
 
@@ -586,10 +614,7 @@ void ACivilFXPawn::HandleMouseInput()
 	{
 		return;
 	}
-	else
-	{
-		OnEndCameraMovement();
-	}
+
 
 	bool bLMousePressed = PlayerController->IsInputKeyDown(EKeys::LeftMouseButton);
 	bool bRMousePressed = PlayerController->IsInputKeyDown(EKeys::RightMouseButton);
@@ -603,6 +628,8 @@ void ACivilFXPawn::HandleMouseInput()
 
 	if (bLMousePressed && bRMousePressed)
 	{
+		OnEndCameraMovement();
+
 		if (MouseInputMode & FMouseInputMask::TRANSLATE)
 		{
 			MouseInputMode |= FMouseInputMask::ZOOM_IN;
@@ -620,6 +647,8 @@ void ACivilFXPawn::HandleMouseInput()
 	}
 	else if (!bLMousePressed && bRMousePressed)
 	{
+		OnEndCameraMovement();
+
 		MouseInputMode |= FMouseInputMask::ROTATE;
 		MouseInputMode &= ~FMouseInputMask::ZOOM_IN;
 		MouseInputMode &= ~FMouseInputMask::ZOOM_OUT;
@@ -627,11 +656,15 @@ void ACivilFXPawn::HandleMouseInput()
 
 	else if (bMMousePressed)
 	{
+		OnEndCameraMovement();
+
 		MouseInputMode |= FMouseInputMask::TRANSLATE;
 	}
 
 	else if (bScrollUp && PlayerController->PlayerCameraManager->IsOrthographic())
 	{
+		OnEndCameraMovement();
+
 		PlayerController->PlayerCameraManager->DefaultOrthoWidth = PlayerController->PlayerCameraManager->DefaultOrthoWidth + 1;
 	}
 
@@ -645,6 +678,8 @@ void ACivilFXPawn::HandleMouseInput()
 	//hide mouse cursor when ONLY rotation
 	if (MouseInputMode == FMouseInputMask::ROTATE)
 	{
+		OnEndCameraMovement();
+
 		PlayerController->bShowMouseCursor = false;
 		PlayerController->GetMousePosition(CursorPosition.X, CursorPosition.Y);
 	}
