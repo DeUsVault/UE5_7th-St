@@ -9,8 +9,7 @@
 
 void UAnimatedCameraView::NativeConstruct()
 {
-	TreeViewContainer->SetOnGetItemChildren(this, &UAnimatedCameraView::HandleGetItemChildren);
-}
+	TreeViewContainer->SetOnGetItemChildren(this, &UAnimatedCameraView::HandleGetItemChildren);}
 
 void UAnimatedCameraView::StopAllChevron()
 {
@@ -58,6 +57,8 @@ void UAnimatedCameraView::RedrawView(const TArray<FAnimatedCameraNodeData>& InCa
 	}
 
 	TreeViewContainer->SetListItems(Roots);
+
+	TreeViewContainer->ExpandAll();
 }
 
 void UAnimatedCameraView::HandleGetItemChildren(UObject* Item, TArray<UObject*>& OutChildren)
