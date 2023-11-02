@@ -45,17 +45,17 @@ void UNavigationPanel::NativeConstruct()
 
 	/**Create folder and camera config file*/
 	FString LaunchDir;
-//#if WITH_EDITOR
-//	LaunchDir = FPaths::ProjectDir();
-//#else
-//	LaunchDir = FPaths::LaunchDir();
-//#endif
-	DataFolderDir = FPaths::CloudDir();
+#if WITH_EDITOR
+	LaunchDir = FPaths::ProjectDir();
+#else
+	LaunchDir = FPaths::LaunchDir();
+#endif
+	DataFolderDir = FPaths::Combine(LaunchDir, FString("Data"));
 
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	PlatformFile.CreateDirectory(*DataFolderDir);
 
-	CameraConfigFileDir = FPaths::Combine(DataFolderDir, FString("CameraConfig.txt"));
+	CameraConfigFileDir = FPaths::Combine(DataFolderDir, FString("CameraConfig.json"));
 
 	FString JsonString;
 	FFileHelper::LoadFileToString(JsonString, *CameraConfigFileDir);
@@ -91,7 +91,7 @@ void UNavigationPanel::NativeDestruct()
 	//Write
 	FString JsonString;
 	FJsonObjectConverter::UStructToJsonObjectString(NavData, JsonString);
-	FFileHelper::SaveStringToFile(JsonString, *FPaths::Combine(DataFolderDir, FString("CameraConfig.txt")));
+	FFileHelper::SaveStringToFile(JsonString, *FPaths::Combine(DataFolderDir, FString("CameraConfig.json")));
 	//
 	Super::NativeDestruct();
 }
