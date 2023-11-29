@@ -21,6 +21,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetSceneFOV(float InFoV);
+	UFUNCTION(BlueprintCallable)
 	float GetSceneFOV() const;
 
 	UFUNCTION(BlueprintCallable)
