@@ -40,15 +40,17 @@ public:
     UObject* HambergerClosedTexture;
 
     EPanelStatus Status = EPanelStatus::Opened;
+
+     /*Additional references*/
+    UPROPERTY(meta=(BindWidget))
+    UMainMenu* MainMenu;
+
 protected:
     UFUNCTION()
     void OnHambergerButtonClicked();
 
     virtual void NativeConstruct() override;
 
-    /*Additional references*/
-    UPROPERTY(meta=(BindWidget))
-    UMainMenu* MainMenu;
     
 private:
     /**

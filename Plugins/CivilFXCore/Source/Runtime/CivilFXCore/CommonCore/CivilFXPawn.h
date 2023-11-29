@@ -130,6 +130,9 @@ protected:
 	UFUNCTION()
 	virtual void HandleLeftShift();
 
+	UFUNCTION()
+	virtual void HandleSpaceBar();
+
 	UFUNCTION(BlueprintCallable, Category = "Pawn")
 	virtual void EndApplication();
 
@@ -192,6 +195,7 @@ private:
 	FVector TargetLocation;
 	FRotator TargetRotation;
 	bool bCameraMovementStarted;
+	bool bCameraPaused;
 	uint8 TickRequestCount;
 	float InterpSpeed;
 	void HandleCameraMovement(float DeltaTime);

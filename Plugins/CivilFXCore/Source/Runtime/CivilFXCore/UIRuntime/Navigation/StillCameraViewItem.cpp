@@ -13,6 +13,10 @@
 #include "Components/TextBlock.h"
 #include "Components/Border.h"
 
+#include "CivilFXCore/UIRunTime/MainHUD.h"
+#include "CivilFXCore/UIRunTime/MainHUDWidget.h"
+#include "CivilFXCore/UIRunTime/MainMenu.h"
+
 //==============
 
 
@@ -117,6 +121,16 @@ UStillCameraHierarchyWidget* UStillCameraHierarchyWidget::MakeObject(const FCame
 }
 
 //==============
+
+void UStillCameraViewItem::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	AMainHUD* HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	UMainHUDWidget* HUDWidget = Cast<UMainHUDWidget>(HUD->MainHUDWidget);
+	MainMenu = Cast<UMainMenu>(HUDWidget->MainMenu);
+	check(MainMenu);
+}
 
 void UStillCameraViewItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 {

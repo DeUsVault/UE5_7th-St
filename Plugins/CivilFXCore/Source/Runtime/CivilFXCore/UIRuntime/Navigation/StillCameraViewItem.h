@@ -8,6 +8,8 @@
 #include "Blueprint/DragDropOperation.h"
 #include "StillCameraViewItem.generated.h"
 
+class UMainMenu;
+
 enum class EItemDropZone:int32;
 
 USTRUCT(BlueprintType)
@@ -96,7 +98,7 @@ private:
 	FText RootText;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class UStillCameraHierarchyWidget : public UCameraHierarchyModel
 {
 	GENERATED_BODY()
@@ -120,6 +122,16 @@ UCLASS()
 class CIVILFXCORE_API UStillCameraViewItem : public UUserWidget, public IUserObjectListEntry
 {
 	GENERATED_BODY()
+
+public:
+	virtual void NativeConstruct() override;
+
+	UPROPERTY(BlueprintReadOnly)
+	UCameraHierarchyModel* Model;
+
+	UPROPERTY(BlueprintReadOnly)
+	UMainMenu* MainMenu;
+
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="View Item Settings")
@@ -157,8 +169,6 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_RefreshViewItem(const FText& InItemText, bool bIsRoot, bool bIsEditDragDrop);
-
-	UCameraHierarchyModel* Model;
 
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
