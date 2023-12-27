@@ -19,6 +19,11 @@ class UAnimatedCameraView;
 class UStillCameraView;
 class ACivilFXPawn;
 
+class IHttpRequest;
+class IHttpResponse;
+typedef TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> FHttpRequestPtr;
+typedef TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> FHttpResponsePtr;
+
 USTRUCT()
 struct FNavigationCameraData
 {
@@ -90,6 +95,11 @@ private:
 	void HandleStillComboBoxCategoryTextCommitted(const FText& InText);
 	FText CurrentEditingStillCameraCategoryText;
 	//~
+
+	void UpdatePanelCameras(const FString& InJsonString);
+	void UpdatePanelCameras(const FNavigationCameraData& InNavData);
+
+	void HandleCamerasAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	ACivilFXPawn* PlayerPawn;
 };

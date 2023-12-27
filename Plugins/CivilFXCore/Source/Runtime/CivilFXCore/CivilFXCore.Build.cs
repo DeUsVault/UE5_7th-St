@@ -44,7 +44,9 @@ public class CivilFXCore : ModuleRules
                 "SunPosition",
                 "JsonUtilities",
                 "Json",
-                "Foliage"
+                "Foliage",
+                "DeveloperSettings",
+                "HTTP"
             }
             );
 

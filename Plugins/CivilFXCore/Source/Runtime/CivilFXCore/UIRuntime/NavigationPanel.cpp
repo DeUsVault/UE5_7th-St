@@ -11,6 +11,7 @@
 
 #include "DialogPanel.h"
 #include "CivilFXCore/CommonCore/CivilFXPawn.h"
+#include "CivilFXCore/CommonCore/CivilFXCoreSettings.h"
 #include "CamerasDataParserHelper.h"
 #include "TextableButton.h"
 #include "AnimatedCameraButtonBlock.h"
@@ -28,6 +29,9 @@
 #include "Slate/SceneViewport.h"
 
 #include "JsonObjectConverter.h"
+
+#include "HttpModule.h"
+#include "Interfaces/IHttpResponse.h"
 
 void UNavigationPanel::SetReferenceToHamburgerButton(UButton* HamburgerButtonRef)
 {
@@ -57,19 +61,23 @@ void UNavigationPanel::NativeConstruct()
 
 	CameraConfigFileDir = FPaths::Combine(DataFolderDir, FString("CameraConfig.json"));
 
-	FString JsonString;
-	FFileHelper::LoadFileToString(JsonString, *CameraConfigFileDir);
-	FNavigationCameraData NavData;
-	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &NavData, 0, 0);
-
-	//Draw animated cameras
-	CameraNodeDatas = NavData.AnimatedCamera;
-	RefreshAnimatedCameraContainer();
-
-	//Draw still cameras
-	for (const FCameraViewInfo& StillInfo : NavData.StillCameras)
+	const UCivilFXCoreSettings* Settings = GetDefault<UCivilFXCoreSettings>();
+	if (Settings->bUseAPI && !Settings->EndPoint.IsEmpty())
 	{
-		AddNewStillCameraToScrollBox(FText::FromString(StillInfo.CameraName), FText::FromString(StillInfo.CameraCategory), StillInfo.Rotation, StillInfo.Location);
+		//Load cameras from API
+		TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+		HttpRequest->SetVerb("GET");
+		HttpRequest->SetHeader("Content-Type", "application/json");
+		HttpRequest->SetURL(Settings->EndPoint);
+		HttpRequest->OnProcessRequestComplete().BindUObject(this, &ThisClass::HandleCamerasAPICompleted);
+		HttpRequest->ProcessRequest();
+	}
+	else 
+	{
+		//Load cameras from disk
+		FString JsonString;
+		FFileHelper::LoadFileToString(JsonString, *CameraConfigFileDir);
+		UpdatePanelCameras(JsonString);
 	}
 
 	/** Bind delegates*/
@@ -197,6 +205,35 @@ FText UNavigationPanel::HandleStillComboBoxCategoryGetText()
 void UNavigationPanel::HandleStillComboBoxCategoryTextCommitted(const FText& InText)
 {
 	CurrentEditingStillCameraCategoryText = InText;
+}
+
+void UNavigationPanel::UpdatePanelCameras(const FString& InJsonString)
+{
+	FNavigationCameraData NavData;
+	FJsonObjectConverter::JsonObjectStringToUStruct(InJsonString, &NavData, 0, 0);
+	UpdatePanelCameras(NavData);
+}
+
+void UNavigationPanel::UpdatePanelCameras(const FNavigationCameraData& InNavData)
+{
+	//Draw animated cameras
+	CameraNodeDatas = InNavData.AnimatedCamera;
+	RefreshAnimatedCameraContainer();
+
+	//Draw still cameras
+	for (const FCameraViewInfo& StillInfo : InNavData.StillCameras)
+	{
+		AddNewStillCameraToScrollBox(FText::FromString(StillInfo.CameraName), FText::FromString(StillInfo.CameraCategory), StillInfo.Rotation, StillInfo.Location);
+	}
+}
+
+void UNavigationPanel::HandleCamerasAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		const FString Json = Response->GetContentAsString();
+		UpdatePanelCameras(Json);
+	}
 }
 
 void UNavigationPanel::HandleEditAnimatedCameraPanelExited(TArray<FAnimatedCameraNodeData>& InOutCameraNodeDatas)
