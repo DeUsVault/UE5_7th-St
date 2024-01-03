@@ -98,7 +98,7 @@ void UNavigationPanel::NativeConstruct()
 	CameraConfigFileDir = FPaths::Combine(DataFolderDir, FString("CameraConfig.json"));
 
 	const UCivilFXCoreSettings* Settings = GetDefault<UCivilFXCoreSettings>();
-	if (Settings->bUseAPI && !Settings->EndPoint.IsEmpty())
+	if (UseApi())
 	{
 		//Load cameras from API
 		TSharedRef<IHttpRequest> HttpRequest = CreateRequest(TEXT("GET"), TEXT("navdata"));
@@ -121,19 +121,23 @@ void UNavigationPanel::NativeConstruct()
 
 void UNavigationPanel::NativeDestruct()
 {
-	/**/
-	FNavigationCameraData NavData;
-	//Animated Cameras
-	NavData.AnimatedCamera = CameraNodeDatas;
+	if (!UseApi())
+	{
+		/**/
+		FNavigationCameraData NavData;
+		//Animated Cameras
+		NavData.AnimatedCamera = CameraNodeDatas;
 
-	//Still Cameras
-	NavData.StillCameras = StillCameraView->GetCameraViews();
+		//Still Cameras
+		NavData.StillCameras = StillCameraView->GetCameraViews();
 
-	//Write
-	FString JsonString;
-	FJsonObjectConverter::UStructToJsonObjectString(NavData, JsonString);
-	FFileHelper::SaveStringToFile(JsonString, *FPaths::Combine(DataFolderDir, FString("CameraConfig.json")));
-	//
+		//Write
+		FString JsonString;
+		FJsonObjectConverter::UStructToJsonObjectString(NavData, JsonString);
+		FFileHelper::SaveStringToFile(JsonString, *FPaths::Combine(DataFolderDir, FString("CameraConfig.json")));
+		//
+	}
+
 	Super::NativeDestruct();
 }
 
