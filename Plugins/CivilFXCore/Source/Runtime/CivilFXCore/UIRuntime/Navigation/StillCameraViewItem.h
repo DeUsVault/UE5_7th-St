@@ -106,10 +106,12 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FCameraViewInfo CameraView;
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 Id = -1;
+
 	virtual FText GetText() const override { return FText::FromString(CameraView.CameraName); }
 	
-	static UStillCameraHierarchyWidget* MakeObject(const FCameraViewInfo& InView);
-
+	static UStillCameraHierarchyWidget* MakeObject(const FCameraViewInfo& InView, int32 Id);
 };
 
 //==

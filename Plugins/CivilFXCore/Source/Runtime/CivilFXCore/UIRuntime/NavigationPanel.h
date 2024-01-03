@@ -35,6 +35,28 @@ struct FNavigationCameraData
 	TArray<FCameraViewInfo> StillCameras;
 };
 
+//Helper structs to get the id
+USTRUCT()
+struct FCameraNodeData_ID
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 Id = -1;
+};
+
+USTRUCT()
+struct FNavigationCameraData_ID
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FCameraNodeData_ID> AnimatedCamera;
+	UPROPERTY()
+	TArray<FCameraNodeData_ID> StillCameras;
+};
+//
+
 UCLASS()
 class CIVILFXCORE_API UNavigationPanel : public UMainMenuSubPanel
 {
@@ -48,6 +70,18 @@ public:
 	*/
 	UButton* HamburgerButton;
 	void SetReferenceToHamburgerButton(UButton* HamburgerButtonRef);
+
+public:
+
+	static bool UseApi();
+
+	static TSharedRef<IHttpRequest> CreateRequest(
+		const FString& InVerb,
+		const FString& InRoute,
+		const TOptional<int32>& InId = {}
+	);
+
+	static void RemoveStillCamera(int32 Id);
 
 protected:
 	virtual void NativeConstruct() override;
@@ -90,16 +124,18 @@ private:
 	void HandleAddStillCameraButtonClicked();
 	UFUNCTION()
 	void AddNewStillCameraToScrollBoxDelegate(FText CameraName);
-	void AddNewStillCameraToScrollBox(const FText& CameraName, const FText& CameraCategory, const FRotator& Rotation, const FVector& Location);
+	void AddNewStillCameraToScrollBox(const FText& CameraName, const FText& CameraCategory, const FRotator& Rotation, const FVector& Location, int32 Id);
 	FText HandleStillComboBoxCategoryGetText();
 	void HandleStillComboBoxCategoryTextCommitted(const FText& InText);
 	FText CurrentEditingStillCameraCategoryText;
 	//~
 
 	void UpdatePanelCameras(const FString& InJsonString);
-	void UpdatePanelCameras(const FNavigationCameraData& InNavData);
+	void UpdatePanelCameras(const FNavigationCameraData& InNavData, const FNavigationCameraData_ID& InNavIds);
 
 	void HandleCamerasAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void HandleAddStillCameraAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void HandleAddAnimatedCameraAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	ACivilFXPawn* PlayerPawn;
 };

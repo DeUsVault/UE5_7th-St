@@ -46,7 +46,11 @@ public class CivilFXToolbarEd : ModuleRules
 				"ToolMenus",
 				"EditorStyle",
 				"CivilFXCore", //for phase
-			}
+				"UMGEditor",
+                "Json",
+                "JsonUtilities",
+				"HTTP"
+            }
 			);
 		
 		

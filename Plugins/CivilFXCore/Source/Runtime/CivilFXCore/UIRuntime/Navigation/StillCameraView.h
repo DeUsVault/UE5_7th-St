@@ -20,7 +20,7 @@ class CIVILFXCORE_API UStillCameraView : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
-	void AddItemData(const FCameraViewInfo& InView);
+	void AddItemData(const FCameraViewInfo& InView, int32 Id);
 	TArray<FCameraViewInfo> GetCameraViews() const;
 	TArray<FString> GetRootsName() const;
 

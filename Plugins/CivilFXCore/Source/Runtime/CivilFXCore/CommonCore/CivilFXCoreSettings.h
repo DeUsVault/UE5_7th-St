@@ -19,4 +19,8 @@ public:
 	bool bUseAPI = false;
 	UPROPERTY(config, EditAnywhere, Category = "API", meta = (EditCondition = "bUseAPI"))
 	FString EndPoint;
+	UPROPERTY(config, EditAnywhere, Category = "API", meta = (EditCondition = "bUseAPI"))
+	FString TestEndPoint;
+	UPROPERTY(config, EditAnywhere, Category = "API", meta = (EditCondition = "bUseAPI"))
+	FString ResourceToken;
 };

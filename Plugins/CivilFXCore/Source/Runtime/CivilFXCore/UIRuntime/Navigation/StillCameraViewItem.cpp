@@ -112,11 +112,11 @@ TOptional<EItemDropZone> UCameraHierarchyModel::HandleCanAcceptDrop(const FDragD
 //=============
 
 
-UStillCameraHierarchyWidget* UStillCameraHierarchyWidget::MakeObject(const FCameraViewInfo& InView)
+UStillCameraHierarchyWidget* UStillCameraHierarchyWidget::MakeObject(const FCameraViewInfo& InView, int32 Id)
 {
 	UStillCameraHierarchyWidget* Object = NewObject<UStillCameraHierarchyWidget>();
 	Object->CameraView = InView;
-
+	Object->Id = Id;
 	return Object;
 }
 
