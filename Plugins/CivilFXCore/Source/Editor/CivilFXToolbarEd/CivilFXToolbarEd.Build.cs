@@ -49,7 +49,8 @@ public class CivilFXToolbarEd : ModuleRules
 				"UMGEditor",
                 "Json",
                 "JsonUtilities",
-				"HTTP"
+				"HTTP",
+				"UMG"
             }
 			);
 		
