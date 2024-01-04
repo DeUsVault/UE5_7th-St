@@ -33,6 +33,8 @@
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogNavigationPanel, Log, All);
+
 void UNavigationPanel::SetReferenceToHamburgerButton(UButton* HamburgerButtonRef)
 {
 	HamburgerButton = HamburgerButtonRef;
@@ -68,9 +70,31 @@ TSharedRef<IHttpRequest> UNavigationPanel::CreateRequest(const FString& InVerb, 
 	return HttpRequest;
 }
 
+void UNavigationPanel::RemoveAnimatedCamera(int32 Id)
+{
+	RemoveCameraFromDatabase(TEXT("animated"), Id);
+}
+
 void UNavigationPanel::RemoveStillCamera(int32 Id)
 {
-	TSharedRef<IHttpRequest> DeleteRequest = CreateRequest(TEXT("DELETE"), TEXT("still"), Id);
+	RemoveCameraFromDatabase(TEXT("still"), Id);
+}
+
+void UNavigationPanel::RemoveCameraFromDatabase(const FString& Route, int32 Id)
+{
+	UE_LOG(LogNavigationPanel, Log, TEXT("Request to delete %s camera, id: %d"), *Route, Id);
+
+	if (Id <= 0)
+	{
+		return;
+	}
+
+	if (!UseApi())
+	{
+		return;
+	}
+
+	TSharedRef<IHttpRequest> DeleteRequest = CreateRequest(TEXT("DELETE"), Route, Id);
 	DeleteRequest->ProcessRequest();
 }
 
@@ -180,7 +204,7 @@ void UNavigationPanel::HandleEditAnimatedCameraButtonClicked()
 	UEditAnimatedCameraPanel* EditWidget = Cast<UEditAnimatedCameraPanel>(CreateWidget(GetWorld(), EditAnimatedCameraClass));
 	EditWidget->AddToViewport();
 	EditWidget->OnPanelSelected();
-	EditWidget->RefreshPanel(CameraNodeDatas);
+	EditWidget->RefreshPanel(CameraNodeDatas, CameraNodeIds);
 	EditWidget->OnEditAnimatedCameraPanelExited.AddUObject(this, &UNavigationPanel::HandleEditAnimatedCameraPanelExited);
 }
 
@@ -279,6 +303,8 @@ void UNavigationPanel::UpdatePanelCameras(const FNavigationCameraData& InNavData
 {
 	//Draw animated cameras
 	CameraNodeDatas = InNavData.AnimatedCamera;
+	CameraNodeIds = InNavIds.AnimatedCamera;
+
 	RefreshAnimatedCameraContainer();
 
 	//Draw still cameras
@@ -315,14 +341,49 @@ void UNavigationPanel::HandleAddStillCameraAPICompleted(FHttpRequestPtr Request,
 	}
 }
 
-void UNavigationPanel::HandleAddAnimatedCameraAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-}
-
-void UNavigationPanel::HandleEditAnimatedCameraPanelExited(TArray<FAnimatedCameraNodeData>& InOutCameraNodeDatas)
+void UNavigationPanel::HandleEditAnimatedCameraPanelExited(TArray<FAnimatedCameraNodeData>& InOutCameraNodeDatas, const TArray<FCameraNodeData_ID>& InIds)
 {
 	HamburgerButton->OnClicked.Broadcast();
+
+	//Check to see if we need to update the database
+	if (UseApi())
+	{
+		const TSet<FCameraNodeData_ID> NewIds(InIds);
+		const TSet<FCameraNodeData_ID> ToUpdateIds = NewIds.Difference(TSet<FCameraNodeData_ID>(CameraNodeIds));
+		
+		for (int32 Index = 0; Index < InIds.Num(); ++Index)
+		{
+			bool bShouldUpdate = false;
+			const FCameraNodeData_ID& NewId = InIds[Index];
+			const FAnimatedCameraNodeData& NewData = InOutCameraNodeDatas[Index];
+			if (CameraNodeIds.Contains(NewId))
+			{
+				const int32 OldDataIndex = CameraNodeIds.IndexOfByKey(NewId);
+				const FAnimatedCameraNodeData& OldData = CameraNodeDatas[OldDataIndex];
+				if (NewData != OldData)
+				{
+					bShouldUpdate = true;
+				}
+			}
+			else 
+			{
+				bShouldUpdate = true;
+			}
+
+			if (bShouldUpdate)
+			{
+				FString Json;
+				FJsonObjectConverter::UStructToJsonObjectString(NewData, Json);
+
+				FHttpRequestPtr UpdateRequest = CreateRequest(TEXT("PUT"), TEXT("animated"), NewId.Id);
+				UpdateRequest->SetContentAsString(Json);
+				UpdateRequest->ProcessRequest();
+			}
+		}
+	}
+
 	CameraNodeDatas = MoveTemp(InOutCameraNodeDatas);
+	CameraNodeIds = InIds;
 	RefreshAnimatedCameraContainer();
 }
 

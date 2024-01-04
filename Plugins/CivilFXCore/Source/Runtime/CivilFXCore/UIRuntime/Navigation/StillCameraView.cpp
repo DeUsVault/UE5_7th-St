@@ -92,10 +92,7 @@ void UStillCameraView::RequestRemoveItem(UCameraHierarchyModel* Model)
 			//Remove from database
 			if (UStillCameraHierarchyWidget* StillModel = Cast<UStillCameraHierarchyWidget>(Model))
 			{
-				if (StillModel->Id > 0)
-				{
-					UNavigationPanel::RemoveStillCamera(StillModel->Id);
-				}
+				UNavigationPanel::RemoveStillCamera(StillModel->Id);
 			}
 		}
 	}

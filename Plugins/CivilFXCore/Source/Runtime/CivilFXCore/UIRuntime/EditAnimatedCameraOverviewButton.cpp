@@ -5,6 +5,7 @@
 #include "EditAnimatedCameraOverviewPanel.h"
 #include "EditOverviewButtonOptionsMenu.h"
 #include "LockedDialogPanel.h"
+#include "CivilFXCore/UIRuntime/NavigationPanel.h"
 
 #include "Components/TextBlock.h"
 #include "Components/MenuAnchor.h"
@@ -49,9 +50,11 @@ void UEditAnimatedCameraOverviewButton::UpdateCameraNodeData()
 
 }
 
-void UEditAnimatedCameraOverviewButton::SetCameraNodeData(TSharedPtr<FAnimatedCameraNodeData> InCameraData)
+void UEditAnimatedCameraOverviewButton::SetCameraNodeData(TSharedPtr<FAnimatedCameraNodeData> InCameraData, int32 InId)
 {
 	CameraNodeData = InCameraData;
+	Id = InId;
+
 	SetCameraName(FText::FromString(CameraNodeData->CameraName));
 
 	if (CameraNodeData->bHasLoadedData)
@@ -70,6 +73,11 @@ TSharedPtr<FAnimatedCameraNodeData> UEditAnimatedCameraOverviewButton::GetCamera
 	return CameraNodeData;
 }
 
+int32 UEditAnimatedCameraOverviewButton::GetCameraNodeId() const
+{
+	return Id;
+}
+
 void UEditAnimatedCameraOverviewButton::HandleDeleteButtonClicked()
 {
 	GLog->Log("Deleting");
@@ -86,6 +94,9 @@ void UEditAnimatedCameraOverviewButton::HandleConfirmedDelete(FText)
 {
 	//let parent panel delete this button
 	ParentPanel->DeleteChild(this);
+
+	//Delete from database
+	UNavigationPanel::RemoveAnimatedCamera(Id);
 }
 
 void UEditAnimatedCameraOverviewButton::HandleCanceledDelete()

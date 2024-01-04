@@ -35,28 +35,6 @@ struct FNavigationCameraData
 	TArray<FCameraViewInfo> StillCameras;
 };
 
-//Helper structs to get the id
-USTRUCT()
-struct FCameraNodeData_ID
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	int32 Id = -1;
-};
-
-USTRUCT()
-struct FNavigationCameraData_ID
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	TArray<FCameraNodeData_ID> AnimatedCamera;
-	UPROPERTY()
-	TArray<FCameraNodeData_ID> StillCameras;
-};
-//
-
 UCLASS()
 class CIVILFXCORE_API UNavigationPanel : public UMainMenuSubPanel
 {
@@ -81,7 +59,9 @@ public:
 		const TOptional<int32>& InId = {}
 	);
 
+	static void RemoveAnimatedCamera(int32 Id);
 	static void RemoveStillCamera(int32 Id);
+	static void RemoveCameraFromDatabase(const FString& Route, int32 Id);
 
 protected:
 	virtual void NativeConstruct() override;
@@ -109,12 +89,14 @@ private:
 	UPROPERTY(Transient)
 	TSubclassOf<UEditAnimatedCameraPanel> EditAnimatedCameraClass;
 	TArray<FAnimatedCameraNodeData> CameraNodeDatas;
+	TArray<FCameraNodeData_ID> CameraNodeIds;
 	void RefreshAnimatedCameraContainer();
 
 	UFUNCTION()
 	void HandleEditAnimatedCameraButtonClicked();
 	UFUNCTION()
-	void HandleEditAnimatedCameraPanelExited(TArray<FAnimatedCameraNodeData>& InOutCameraNodeDatas);
+	void HandleEditAnimatedCameraPanelExited(TArray<FAnimatedCameraNodeData>& InOutCameraNodeDatas,
+		const TArray<FCameraNodeData_ID>& InIds);
 	UFUNCTION()
 	void HandleNewPhaseSwitch(EPhaseType PhaseType, EPhaseMode PhaseMode);
 	//~
@@ -135,7 +117,6 @@ private:
 
 	void HandleCamerasAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void HandleAddStillCameraAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	void HandleAddAnimatedCameraAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 
 	ACivilFXPawn* PlayerPawn;
 };

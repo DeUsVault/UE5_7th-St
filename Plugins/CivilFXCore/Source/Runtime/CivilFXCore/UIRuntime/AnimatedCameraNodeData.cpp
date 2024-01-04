@@ -169,3 +169,15 @@ FString FAnimatedCameraNodeData::ToString() const
 
 }
 
+bool operator==(const FAnimatedCameraNodeData& InLHS, const FAnimatedCameraNodeData& InRHS)
+{
+	const FString& LHSStr = InLHS.GetSerializedString(0);
+	const FString& RHSStr = InRHS.GetSerializedString(0);
+
+	return LHSStr.Equals(RHSStr);
+}
+
+bool operator!=(const FAnimatedCameraNodeData& InLHS, const FAnimatedCameraNodeData& InRHS)
+{
+	return !(InLHS == InRHS);
+}
