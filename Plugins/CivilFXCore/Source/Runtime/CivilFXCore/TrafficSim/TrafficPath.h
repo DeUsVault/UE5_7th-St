@@ -99,12 +99,12 @@ class CIVILFXCORE_API UTrafficPath : public UPrimitiveComponent
 {
 	GENERATED_BODY()
 
-
 public:
 	// Sets default values for this component's properties
 	UTrafficPath();
 	static CONSTEXPR uint8 MIN_NODES_COUNT = 4;
 	static CONSTEXPR float NODE_DISTANCE = 3000.f;
+
 public:
 
 	TSharedPtr<FSplineBuilder> GetSplineBuilder(bool ForceRebuild = false);
@@ -172,16 +172,47 @@ public:
 	static void Draw(FPrimitiveDrawInterface* PDI, const FSceneView* View, const UTrafficPath* TrafficPath, bool bDrawHandles=true);
 #endif
 
+#if WITH_EDITORONLY_DATA
+
+	UPROPERTY(EditAnywhere, Category = "Auto Mesh")
+	AActor* MeshActor;
+
+	/**
+	* Bigger number equals better precision but will take longer time.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Auto Mesh")
+	int32 GridSize = 16;
+
+	/**
+	* Time in second.
+	*/
+	UPROPERTY(EditAnywhere, Category = "Auto Mesh")
+	float VisualizationTime = 60;
+
+#endif
+
 #if WITH_EDITOR
 	void UpdateNode(int32 Index, FVector Location);
 	void UpdateNodes(FVector DeltaLocation);
-	void InsertNode(int32 Index, FVector Location);
+	void InsertNode(int32 Index);
+	void AddControlNode(bool bFirst);
 	void ReverseNodes();
+
+	UFUNCTION(CallInEditor, Category="Auto Mesh")
+	void BuildPathFromMeshActor();
+
+	/**
+	* Project the given node onto a terrain. Node is move up by an offset before projecting.
+	* @param WorldContextObject to query the valid world.
+	* @param CurrentNode node to project.
+	* @param UpDistance z offset applied to node before projecting.
+	* @return true if the node is projected.
+	*/
+	static bool GetProjectedNode(const UObject* WorldContextObject, FVector& InOutNode, float UpDistance = 10.f);
+
 #endif
 
-
 protected:
-
 	virtual void OnComponentCreated() override;
 
 private:
@@ -196,8 +227,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Path Settings")
 	FLinearColor SplineColor = FColor::Green;
-
-
 
 	UPROPERTY(EditAnywhere, Category = "Path Settings")
 	TArray<FVector> Nodes;
