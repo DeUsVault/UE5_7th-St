@@ -82,10 +82,19 @@
 				"Win64",
 				"Android"
 			]
+		},
+		{
+			"Name": "PanoramicCapture",
+			"Enabled": true
+		},
+		{
+			"Name": "MoviePipelineMaskRenderPass",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
 		"WindowsNoEditor",
-		"Windows"
+		"Windows",
+		"HoloLens"
 	]
 }

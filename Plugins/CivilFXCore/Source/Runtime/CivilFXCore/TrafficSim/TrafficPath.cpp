@@ -301,6 +301,76 @@ FVector UTrafficPath::GetWorldTangent(float CurvePos) const
 }
 
 #if WITH_EDITOR
+
+void UTrafficPath::InsertNode(int32 SelectedNodeIndex)
+{
+	if (SelectedNodeIndex != INDEX_NONE)
+	{
+		const FScopedTransaction Transaction(NSLOCTEXT("InsertNode", "InsertNode", "Insert node at an index"));
+
+		Modify();
+		if (AActor* Owner = GetOwner())
+		{
+			Owner->Modify();
+		}
+
+		//do insert
+		FVector Direction;
+		FVector NewNode;
+		float Distance;
+		int32 NodesCount = Nodes.Num();
+		if (SelectedNodeIndex == NodesCount - 1)
+		{
+			Direction = (Nodes[NodesCount - 1] - Nodes[NodesCount - 2]);
+			Distance = Direction.Size();
+			Direction.Normalize();
+			NewNode = Nodes[NodesCount - 1] + (Direction * Distance);
+		}
+		else if (SelectedNodeIndex == 0)
+		{
+			Direction = (Nodes[1] - Nodes[0]);
+			Distance = Direction.Size();
+			Direction.Normalize();
+			NewNode = Nodes[0] + (-Direction * Distance);
+		}
+		else
+		{
+			Direction = (Nodes[SelectedNodeIndex + 1] - Nodes[SelectedNodeIndex]);
+			Direction.Normalize();
+			Distance = FVector::Dist(Nodes[SelectedNodeIndex], Nodes[SelectedNodeIndex + 1]) / 2;
+			NewNode = Nodes[SelectedNodeIndex] + (Direction * Distance);
+		}
+		SelectedNodeIndex = SelectedNodeIndex == 0 ? SelectedNodeIndex : SelectedNodeIndex + 1;
+		GetProjectedNode(this, NewNode);
+		Nodes.Insert(NewNode, SelectedNodeIndex);
+
+		//Force rebuild spline
+		GetSplineBuilder(true);
+	}
+}
+
+void UTrafficPath::AddControlNode(bool bFirst)
+{
+	FVector Direction;
+	FVector NewNode;
+	float Distance;
+	int32 NodesCount = Nodes.Num();
+	if (bFirst)
+	{
+		Direction = (Nodes[1] - Nodes[0]);
+		Distance = Direction.Size();
+		Direction.Normalize();
+		NewNode = Nodes[0] + (-Direction * Distance);
+	}
+	else
+	{
+		Direction = (Nodes[NodesCount - 1] - Nodes[NodesCount - 2]);
+		Distance = Direction.Size();
+		Direction.Normalize();
+		NewNode = Nodes[NodesCount - 1] + (Direction * Distance);
+	}
+}
+
 void UTrafficPath::ReverseNodes()
 {
 #define LOCTEXT_NAMESPACE "TP"
@@ -310,8 +380,113 @@ void UTrafficPath::ReverseNodes()
 	MarkRenderStateDirty();
 #undef LOCTEXT_NAMESPACE
 }
-#endif
 
+
+void UTrafficPath::BuildPathFromMeshActor()
+{
+	if (!MeshActor)
+	{
+		return;
+	}
+
+	FlushPersistentDebugLines(GetWorld());
+
+	FBox BoundingBox(ForceInit);
+	MeshActor->ForEachComponent<UStaticMeshComponent>(false, [&](const UStaticMeshComponent* InPrimComp)
+	{
+		const bool bNonColliding = false;
+		// Only use collidable components to find collision bounding box.
+		if (InPrimComp->IsRegistered() && (bNonColliding || InPrimComp->IsCollisionEnabled()))
+		{
+			BoundingBox += InPrimComp->Bounds.GetBox();
+		}
+	});
+	
+	FVector Center, Extent;
+	BoundingBox.GetCenterAndExtents(Center, Extent);
+	DrawDebugBox(GetWorld(), Center, Extent, FColor::Orange, false, VisualizationTime);
+
+	/** BOUNDING BOX VERTICES
+	*		  7----6
+	*		 /    /|
+	*		5----1 |
+	*		|    | 2
+	*		|    |/
+	*		3----0
+	*/
+
+	FVector Vertices[8];
+	BoundingBox.GetVertices(Vertices);
+
+	const float Length_16 = FVector::Distance(Vertices[1], Vertices[6]);
+	const FVector Dir_16 = (Vertices[6] - Vertices[1]).GetSafeNormal();
+
+	const float Length_15 = FVector::Distance(Vertices[1], Vertices[5]);
+	const FVector Dir_15 = (Vertices[5] - Vertices[1]).GetSafeNormal();
+
+	TArray<FVector> TempNodes;
+	for (int32 X = 0; X < GridSize + 1; ++X)
+	{
+		const float Length_X = (Length_16 / GridSize) * X;
+		const FVector PointerX = Vertices[1] + (Dir_16 * Length_X);
+		for (int32 Y = 0; Y < GridSize + 1; ++Y)
+		{
+			const float Length_Y = (Length_15 / GridSize) * Y;
+			FVector PointerY = PointerX + (Dir_15 * Length_Y);
+			DrawDebugPoint(GetWorld(), PointerY, 7, FColor::Red, false, VisualizationTime);
+
+			FVector ProjectedNode = PointerY;
+			if (GetProjectedNode(this, ProjectedNode))
+			{
+				TempNodes.Add(ProjectedNode);
+
+				//We don't want to keep going along this axis.
+				break;
+			}
+		}
+	}
+
+	if (TempNodes.Num() >= 2)
+	{
+		const FScopedTransaction Transaction(NSLOCTEXT("InsertNode", "InsertNode", "Insert node at an index"));
+		Modify();
+		if (AActor* Owner = GetOwner())
+		{
+			Owner->Modify();
+		}
+
+		Nodes = TempNodes;
+		AddControlNode(true);
+		AddControlNode(false);
+	}
+}
+
+bool UTrafficPath::GetProjectedNode(const UObject* WorldContextObject, FVector& InOutNode, float UpDistance /*=10.0f*/)
+{
+	FHitResult Hit(1.0f);
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(ProjectingNode), true);
+	if (WorldContextObject->GetWorld()->LineTraceSingleByChannel(Hit, InOutNode + FVector::UpVector * UpDistance, InOutNode + FVector::DownVector * WORLD_MAX, ECC_WorldStatic, Params))
+	{
+		InOutNode = Hit.Location;
+		return true;
+	}
+	else
+	{
+		//if we don't hit anything try one more time
+		//by moving the node up (TraceDistance * 2.0) unit and cast down again
+		FVector NewNode = InOutNode + FVector::UpVector * UpDistance * 2.0f;
+		if (WorldContextObject->GetWorld()->LineTraceSingleByChannel(Hit, NewNode, NewNode + FVector::DownVector * WORLD_MAX, ECC_WorldStatic, Params))
+		{
+			InOutNode = Hit.Location;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+#endif
 
 #if !UE_BUILD_SHIPPING
 FPrimitiveSceneProxy* UTrafficPath::CreateSceneProxy()
@@ -642,6 +817,7 @@ FBoxSphereBounds UTrafficPath::CalcBounds(const FTransform& LocalToWorld) const
 	}
 	return FBoxSphereBounds(BoundingBox.TransformBy(LocalToWorld));
 }
+
 #endif
 
 #pragma endregion
