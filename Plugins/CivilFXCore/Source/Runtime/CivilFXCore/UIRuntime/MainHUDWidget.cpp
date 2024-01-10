@@ -6,6 +6,8 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "MainMenu.h"
+#include "Engine/Engine.h"
+#include "CivilFXCore/CommonCore/CivilFXCoreSettings.h"
 
 void UMainHUDWidget::NativeConstruct()
 {
@@ -23,6 +25,12 @@ void UMainHUDWidget::NativeConstruct()
 	if (MainMenu)
 	{
 		MainMenu->SetReferenceToHamburgerButton(HambergerButton);
+	}
+
+	const UCivilFXCoreSettings* CoreSettings = GetDefault<UCivilFXCoreSettings>();
+	if (CoreSettings->bUseAPI)
+	{
+		ExitButton->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 

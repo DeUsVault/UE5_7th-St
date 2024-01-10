@@ -12,6 +12,8 @@ class UWidgetAnimation;
 class UTexture2D;
 class UUserWidget;
 class UMainMenu;
+class UCivilFXCoreSettings;
+class UButton;
 
 UENUM()
 enum class EPanelStatus
@@ -44,6 +46,9 @@ public:
      /*Additional references*/
     UPROPERTY(meta=(BindWidget))
     UMainMenu* MainMenu;
+
+   UPROPERTY(meta=(BindWidget))
+   UButton* ExitButton;
 
 protected:
     UFUNCTION()
