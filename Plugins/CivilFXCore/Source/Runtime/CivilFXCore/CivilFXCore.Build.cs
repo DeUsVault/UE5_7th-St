@@ -46,7 +46,8 @@ public class CivilFXCore : ModuleRules
                 "Json",
                 "Foliage",
                 "DeveloperSettings",
-                "HTTP"
+                "HTTP",
+                "Projects"
             }
             );
 

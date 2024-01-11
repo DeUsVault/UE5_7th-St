@@ -51,7 +51,9 @@ protected:
 
     virtual void NativeConstruct() override;
 
-    
+    UFUNCTION(BlueprintCallable)
+    bool IsPixelStreamingEnabled() const;
+
 private:
     /**
     * Set new texture for button

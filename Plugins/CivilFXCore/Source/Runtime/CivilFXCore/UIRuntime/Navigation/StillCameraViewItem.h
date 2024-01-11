@@ -40,6 +40,8 @@ public:
 	/* @returns the widget name to use for the tree item */
 	virtual FText GetText() const PURE_VIRTUAL(UCameraHierarchyModel::GetText, return FText::GetEmpty(););
 
+	virtual int32 GetId() const { return -1; }
+
 	void AddChild(UCameraHierarchyModel* Model);
 
 	/**
@@ -72,6 +74,8 @@ public:
 	virtual TOptional<EItemDropZone> HandleCanAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone DropZone, UCameraHierarchyModel* TargetItem);
 	//~
 
+	int32 DraggedIndex = INDEX_NONE;
+
 protected:
 	UPROPERTY()
 	TArray<UCameraHierarchyModel*> Children;
@@ -89,7 +93,6 @@ class UCameraHierarchyRoot : public UCameraHierarchyModel
 public:
 	virtual bool IsRoot() const { return true; }
 	virtual FText GetText() const override { return RootText; }
-
 
 	bool IsSame(const FString& InRootName) { return RootText.ToString().Equals(InRootName); };
 	void SetRootText(const FString& InRootName) { RootText = FText::FromString(InRootName); }
@@ -110,7 +113,8 @@ public:
 	int32 Id = -1;
 
 	virtual FText GetText() const override { return FText::FromString(CameraView.CameraName); }
-	
+	virtual int32 GetId() const override { return Id; }
+
 	static UStillCameraHierarchyWidget* MakeObject(const FCameraViewInfo& InView, int32 Id);
 };
 
@@ -177,5 +181,4 @@ protected:
 private:
 	TOptional<EItemDropZone> ItemDropZone;
 	UStillCameraView* GetOuterOwnerView() const;
-
 };
