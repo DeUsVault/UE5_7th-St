@@ -47,7 +47,7 @@ public:
     UPROPERTY(meta=(BindWidget))
     UMainMenu* MainMenu;
 
-   UPROPERTY(meta=(BindWidget))
+   UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
    UButton* ExitButton;
 
 protected:
