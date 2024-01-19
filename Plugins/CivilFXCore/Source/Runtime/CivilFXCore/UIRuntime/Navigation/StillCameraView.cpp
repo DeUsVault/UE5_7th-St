@@ -80,6 +80,19 @@ TArray<FString> UStillCameraView::GetRootsName() const
 	return RootsName;
 }
 
+int32 UStillCameraView::GetItemIndex(UCameraHierarchyModel* Model) const
+{
+	TArray<UCameraHierarchyModel*> Items;
+	for (UCameraHierarchyRoot* Root : Roots)
+	{
+		TArray<UCameraHierarchyModel*> Children;
+		Root->GetAllChildren(Children);
+		Items.Append(Children);
+	}
+
+	return Items.IndexOfByKey(Model);
+}
+
 void UStillCameraView::RequestRemoveItem(UCameraHierarchyModel* Model)
 {
 	for (UCameraHierarchyRoot* Root : Roots)

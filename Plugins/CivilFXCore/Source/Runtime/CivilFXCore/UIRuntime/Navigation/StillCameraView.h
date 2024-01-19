@@ -24,6 +24,8 @@ public:
 	TArray<FCameraViewInfo> GetCameraViews() const;
 	TArray<FString> GetRootsName() const;
 
+	int32 GetItemIndex(UCameraHierarchyModel* Model) const;
+
 	void RequestRemoveItem(UCameraHierarchyModel* Model);
 
 	UFUNCTION(BlueprintCallable)

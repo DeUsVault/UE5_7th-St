@@ -6,8 +6,12 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "MainMenu.h"
+<<<<<<< HEAD
 #include "Engine/Engine.h"
 #include "CivilFXCore/CommonCore/CivilFXCoreSettings.h"
+=======
+#include "Interfaces/IPluginManager.h"
+>>>>>>> 2bb96ce8761893e1b3cac62336dbc96348fb647b
 
 void UMainHUDWidget::NativeConstruct()
 {
@@ -32,6 +36,12 @@ void UMainHUDWidget::NativeConstruct()
 	{
 		ExitButton->SetVisibility(ESlateVisibility::Hidden);
 	}
+}
+
+bool UMainHUDWidget::IsPixelStreamingEnabled() const
+{
+	TSharedPtr<IPlugin> PixelStreamPlugin = IPluginManager::Get().FindPlugin(TEXT("PixelStreaming"));
+	return PixelStreamPlugin.IsValid();
 }
 
 void UMainHUDWidget::OnHambergerButtonClicked()
