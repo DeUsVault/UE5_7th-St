@@ -2,19 +2,38 @@
 
 
 #include "EditAnimatedCameraOverviewPanel.h"
+#include "CivilFXCore/UIRuntime/NavigationPanel.h"
+
 #include "Components/ScrollBox.h"
 #include "Components/ScrollBoxSlot.h"
 #include "EditAnimatedCameraPropertyPanel.h"
 
 #include "LockedDialogPanel.h"
 
+#include "JsonObjectConverter.h"
+#include "HttpModule.h"
+#include "Interfaces/IHttpResponse.h"
 
 void UEditAnimatedCameraOverviewPanel::AddChild(bool bChildSelected)
 {
-	AddChild(MakeShared<FAnimatedCameraNodeData>(), bChildSelected);
+	if (UNavigationPanel::UseApi())
+	{
+		FString Content;
+		FAnimatedCameraNodeData DefaultData;
+		FJsonObjectConverter::UStructToJsonObjectString(DefaultData, Content);
+
+		FHttpRequestPtr AddRequest = UNavigationPanel::CreateRequest(TEXT("POST"), TEXT("animated"));
+		AddRequest->SetContentAsString(Content);
+		AddRequest->OnProcessRequestComplete().BindUObject(this, &ThisClass::HandleAddAnimatedCameraAPICompleted);
+		AddRequest->ProcessRequest();
+	}
+	else 
+	{
+		AddChild(MakeShared<FAnimatedCameraNodeData>(), -1, bChildSelected);
+	}
 }
 
-void UEditAnimatedCameraOverviewPanel::AddChild(TSharedPtr<FAnimatedCameraNodeData> CameraData, bool bChildSelected/*=false*/)
+void UEditAnimatedCameraOverviewPanel::AddChild(TSharedPtr<FAnimatedCameraNodeData> CameraData, int32 Id, bool bChildSelected/*=false*/)
 {
 	UWidget* Child = CreateWidget(GetWorld(), ImageButtonClass);
 	check(Child);
@@ -27,7 +46,7 @@ void UEditAnimatedCameraOverviewPanel::AddChild(TSharedPtr<FAnimatedCameraNodeDa
 
 	UEditAnimatedCameraOverviewButton* ChildButton = Cast<UEditAnimatedCameraOverviewButton>(Child);
 	ChildButton->GetButton()->OnClicked.AddDynamic(this, &UEditAnimatedCameraOverviewPanel::OnEditAnimatedCameraButtonSelected);
-	ChildButton->SetCameraNodeData(CameraData);
+	ChildButton->SetCameraNodeData(CameraData, Id);
 	ChildButton->ParentPanel = this;
 
 	if (bChildSelected || (CurrentSelectedButton == nullptr && Container->GetAllChildren().Num() == 1))
@@ -101,24 +120,42 @@ void UEditAnimatedCameraOverviewPanel::OnEditAnimatedCameraButtonSelected()
 	});
 }
 
+void UEditAnimatedCameraOverviewPanel::HandleAddAnimatedCameraAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+	{
+		const FString& Content = Response->GetContentAsString();
 
+		FAnimatedCameraNodeData NodeData;
+		FJsonObjectConverter::JsonObjectStringToUStruct(Content, &NodeData);
+
+		FCameraNodeData_ID Id;
+		FJsonObjectConverter::JsonObjectStringToUStruct(Content, &Id);
+
+		AddChild(MakeShared<FAnimatedCameraNodeData>(NodeData), Id.Id);
+	}
+}
 
 void UEditAnimatedCameraOverviewPanel::DeleteChild(UEditAnimatedCameraOverviewButton* DeletingButton)
 {
-	int32 Index = Container->GetChildIndex(CurrentSelectedButton);
+	int32 Index = Container->GetChildIndex(DeletingButton);
+	Container->RemoveChild(DeletingButton);
 
-	Container->RemoveChild(CurrentSelectedButton);
+	if (Container->GetChildrenCount() == 0)
+	{
+		//add a default child
+		AddChild(true);
+	}
 
-	if (Container->GetChildrenCount() > 0)
+	if (DeletingButton == CurrentSelectedButton)
 	{
 		Index = FMath::Min(Index + 1, Container->GetChildrenCount() - 1);
-		UEditAnimatedCameraOverviewButton* ChildButton = Cast<UEditAnimatedCameraOverviewButton>(Container->GetChildAt(Index));
-		ChildButton->GetButton()->OnClicked.Broadcast();
-		Container->ScrollWidgetIntoView(ChildButton);
-	}
-	else
-	{	//add a default child
-		AddChild(true);
+		if (Index >= 0)
+		{
+			UEditAnimatedCameraOverviewButton* ChildButton = Cast<UEditAnimatedCameraOverviewButton>(Container->GetChildAt(Index));
+			ChildButton->GetButton()->OnClicked.Broadcast();
+			Container->ScrollWidgetIntoView(ChildButton);
+		}
 	}
 }
 
@@ -127,8 +164,10 @@ void UEditAnimatedCameraOverviewPanel::SetPropertyPanel(class UEditAnimatedCamer
 	PropertyPanel = InPropertyPanel;
 }
 
-TArray<FAnimatedCameraNodeData> UEditAnimatedCameraOverviewPanel::GetAllCameraNodeData()
+TArray<FAnimatedCameraNodeData> UEditAnimatedCameraOverviewPanel::GetAllCameraNodeData(TArray<FCameraNodeData_ID>& OutIds) const
 {
+	OutIds.Empty();
+
 	TArray<FAnimatedCameraNodeData> Result;
 	for (UWidget* Child : Container->GetAllChildren())
 	{
@@ -136,6 +175,7 @@ TArray<FAnimatedCameraNodeData> UEditAnimatedCameraOverviewPanel::GetAllCameraNo
 		if (ChildButton)
 		{	
 			Result.Add(*ChildButton->GetCameraNodeData());
+			OutIds.Add( { ChildButton->GetCameraNodeId() } );
 		}
 	}
 	return Result;

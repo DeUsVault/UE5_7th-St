@@ -8,6 +8,12 @@
 #include "AnimatedCameraNodeData.h"
 #include "EditAnimatedCameraOverviewPanel.generated.h"
 
+struct FCameraNodeData_ID;
+class IHttpRequest;
+class IHttpResponse;
+typedef TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> FHttpRequestPtr;
+typedef TSharedPtr<IHttpResponse, ESPMode::ThreadSafe> FHttpResponsePtr;
+
 /**
  * 
  */
@@ -19,10 +25,10 @@ class CIVILFXCORE_API UEditAnimatedCameraOverviewPanel : public UUserWidget
 public:
 
 	void AddChild(bool bChildSelected=false);
-	void AddChild(TSharedPtr<FAnimatedCameraNodeData> CameraData, bool bChildSelected=false);
+	void AddChild(TSharedPtr<FAnimatedCameraNodeData> CameraData, int32 Id, bool bChildSelected=false);
 	void DisplaySearchedChildren(const FText& SeachedText);
 	void SetPropertyPanel(class UEditAnimatedCameraPropertyPanel* InPropertyPanel);
-	TArray<FAnimatedCameraNodeData> GetAllCameraNodeData();
+	TArray<FAnimatedCameraNodeData> GetAllCameraNodeData(TArray<FCameraNodeData_ID>& OutIds) const;
 
 	void DeleteChild(UEditAnimatedCameraOverviewButton* DeletingButton);
 
@@ -37,4 +43,6 @@ private:
 	UFUNCTION()
 	void OnEditAnimatedCameraButtonSelected();
 	class UEditAnimatedCameraPropertyPanel* PropertyPanel;
+
+	void HandleAddAnimatedCameraAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };

@@ -11,6 +11,7 @@
 
 #include "DialogPanel.h"
 #include "CivilFXCore/CommonCore/CivilFXPawn.h"
+#include "CivilFXCore/CommonCore/CivilFXCoreSettings.h"
 #include "CamerasDataParserHelper.h"
 #include "TextableButton.h"
 #include "AnimatedCameraButtonBlock.h"
@@ -29,9 +30,72 @@
 
 #include "JsonObjectConverter.h"
 
+#include "HttpModule.h"
+#include "Interfaces/IHttpResponse.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogNavigationPanel, Log, All);
+
 void UNavigationPanel::SetReferenceToHamburgerButton(UButton* HamburgerButtonRef)
 {
 	HamburgerButton = HamburgerButtonRef;
+}
+
+bool UNavigationPanel::UseApi()
+{
+	const UCivilFXCoreSettings* CoreSettings = GetDefault<UCivilFXCoreSettings>();
+
+	return CoreSettings->bUseAPI 
+		&& !CoreSettings->EndPoint.IsEmpty()
+		&& !CoreSettings->ResourceToken.IsEmpty();
+}
+
+TSharedRef<IHttpRequest> UNavigationPanel::CreateRequest(const FString& InVerb, const FString& InRoute, const TOptional<int32>& InId /*={}*/)
+{
+	const UCivilFXCoreSettings* CoreSettings = GetDefault<UCivilFXCoreSettings>();
+	FString EndPoint = CoreSettings->EndPoint;
+	FPaths::NormalizeDirectoryName(EndPoint);
+	const FString ResourceToken = CoreSettings->ResourceToken;
+
+	FString Url = FString::Format(TEXT("{0}/{1}/{2}"), { EndPoint, InRoute, ResourceToken });
+	if (InId.IsSet())
+	{
+		Url = FString::Format(TEXT("{0}/{1}"), { Url, InId.GetValue() });
+	}
+	
+	TSharedRef<IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetVerb(InVerb);
+	HttpRequest->SetHeader("Content-Type", "application/json");
+	HttpRequest->SetURL(Url);
+
+	return HttpRequest;
+}
+
+void UNavigationPanel::RemoveAnimatedCamera(int32 Id)
+{
+	RemoveCameraFromDatabase(TEXT("animated"), Id);
+}
+
+void UNavigationPanel::RemoveStillCamera(int32 Id)
+{
+	RemoveCameraFromDatabase(TEXT("still"), Id);
+}
+
+void UNavigationPanel::RemoveCameraFromDatabase(const FString& Route, int32 Id)
+{
+	UE_LOG(LogNavigationPanel, Log, TEXT("Request to delete %s camera, id: %d"), *Route, Id);
+
+	if (Id <= 0)
+	{
+		return;
+	}
+
+	if (!UseApi())
+	{
+		return;
+	}
+
+	TSharedRef<IHttpRequest> DeleteRequest = CreateRequest(TEXT("DELETE"), Route, Id);
+	DeleteRequest->ProcessRequest();
 }
 
 void UNavigationPanel::NativeConstruct()
@@ -57,19 +121,20 @@ void UNavigationPanel::NativeConstruct()
 
 	CameraConfigFileDir = FPaths::Combine(DataFolderDir, FString("CameraConfig.json"));
 
-	FString JsonString;
-	FFileHelper::LoadFileToString(JsonString, *CameraConfigFileDir);
-	FNavigationCameraData NavData;
-	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &NavData, 0, 0);
-
-	//Draw animated cameras
-	CameraNodeDatas = NavData.AnimatedCamera;
-	RefreshAnimatedCameraContainer();
-
-	//Draw still cameras
-	for (const FCameraViewInfo& StillInfo : NavData.StillCameras)
+	const UCivilFXCoreSettings* Settings = GetDefault<UCivilFXCoreSettings>();
+	if (UseApi())
 	{
-		AddNewStillCameraToScrollBox(FText::FromString(StillInfo.CameraName), FText::FromString(StillInfo.CameraCategory), StillInfo.Rotation, StillInfo.Location);
+		//Load cameras from API
+		TSharedRef<IHttpRequest> HttpRequest = CreateRequest(TEXT("GET"), TEXT("navdata"));
+		HttpRequest->OnProcessRequestComplete().BindUObject(this, &ThisClass::HandleCamerasAPICompleted);
+		HttpRequest->ProcessRequest();
+	}
+	else 
+	{
+		//Load cameras from disk
+		FString JsonString;
+		FFileHelper::LoadFileToString(JsonString, *CameraConfigFileDir);
+		UpdatePanelCameras(JsonString);
 	}
 
 	/** Bind delegates*/
@@ -80,19 +145,23 @@ void UNavigationPanel::NativeConstruct()
 
 void UNavigationPanel::NativeDestruct()
 {
-	/**/
-	FNavigationCameraData NavData;
-	//Animated Cameras
-	NavData.AnimatedCamera = CameraNodeDatas;
+	if (!UseApi())
+	{
+		/**/
+		FNavigationCameraData NavData;
+		//Animated Cameras
+		NavData.AnimatedCamera = CameraNodeDatas;
 
-	//Still Cameras
-	NavData.StillCameras = StillCameraView->GetCameraViews();
+		//Still Cameras
+		NavData.StillCameras = StillCameraView->GetCameraViews();
 
-	//Write
-	FString JsonString;
-	FJsonObjectConverter::UStructToJsonObjectString(NavData, JsonString);
-	FFileHelper::SaveStringToFile(JsonString, *FPaths::Combine(DataFolderDir, FString("CameraConfig.json")));
-	//
+		//Write
+		FString JsonString;
+		FJsonObjectConverter::UStructToJsonObjectString(NavData, JsonString);
+		FFileHelper::SaveStringToFile(JsonString, *FPaths::Combine(DataFolderDir, FString("CameraConfig.json")));
+		//
+	}
+
 	Super::NativeDestruct();
 }
 
@@ -135,7 +204,7 @@ void UNavigationPanel::HandleEditAnimatedCameraButtonClicked()
 	UEditAnimatedCameraPanel* EditWidget = Cast<UEditAnimatedCameraPanel>(CreateWidget(GetWorld(), EditAnimatedCameraClass));
 	EditWidget->AddToViewport();
 	EditWidget->OnPanelSelected();
-	EditWidget->RefreshPanel(CameraNodeDatas);
+	EditWidget->RefreshPanel(CameraNodeDatas, CameraNodeIds);
 	EditWidget->OnEditAnimatedCameraPanelExited.AddUObject(this, &UNavigationPanel::HandleEditAnimatedCameraPanelExited);
 }
 
@@ -175,10 +244,30 @@ void UNavigationPanel::HandleAddStillCameraButtonClicked()
 
 void UNavigationPanel::AddNewStillCameraToScrollBoxDelegate(FText CameraName)
 {
-	AddNewStillCameraToScrollBox(CameraName, CurrentEditingStillCameraCategoryText, PlayerPawn->GetActorRotation(), PlayerPawn->GetActorLocation());
+	if (UseApi())
+	{
+		FCameraViewInfo View;
+		View.CameraName = CameraName.ToString();
+		View.CameraCategory = CurrentEditingStillCameraCategoryText.ToString();
+		View.Location = PlayerPawn->GetActorLocation();
+		View.Rotation = PlayerPawn->GetActorRotation();
+		View.FoV = GetWorld()->GetSubsystem<USceneManagerCFX>()->GetSceneFOV();
+
+		FString Content;
+		FJsonObjectConverter::UStructToJsonObjectString(View, Content);
+
+		FHttpRequestRef AddStillRequest = CreateRequest(TEXT("POST"), TEXT("still"));
+		AddStillRequest->SetContentAsString(Content);
+		AddStillRequest->OnProcessRequestComplete().BindUObject(this, &ThisClass::HandleAddStillCameraAPICompleted);
+		AddStillRequest->ProcessRequest();
+	}
+	else 
+	{
+		AddNewStillCameraToScrollBox(CameraName, CurrentEditingStillCameraCategoryText, PlayerPawn->GetActorRotation(), PlayerPawn->GetActorLocation(), -1);
+	}
 }
 
-void UNavigationPanel::AddNewStillCameraToScrollBox(const FText& CameraName, const FText& CameraCategory, const FRotator& Rotation, const FVector& Location)
+void UNavigationPanel::AddNewStillCameraToScrollBox(const FText& CameraName, const FText& CameraCategory, const FRotator& Rotation, const FVector& Location, int32 Id)
 {
 	FCameraViewInfo View;
 	View.CameraName = CameraName.ToString();
@@ -186,7 +275,7 @@ void UNavigationPanel::AddNewStillCameraToScrollBox(const FText& CameraName, con
 	View.Location = Location;
 	View.Rotation = Rotation;
 	View.FoV = GetWorld()->GetSubsystem<USceneManagerCFX>()->GetSceneFOV();
-	StillCameraView->AddItemData(View);
+	StillCameraView->AddItemData(View, Id);
 }
 
 FText UNavigationPanel::HandleStillComboBoxCategoryGetText()
@@ -199,10 +288,102 @@ void UNavigationPanel::HandleStillComboBoxCategoryTextCommitted(const FText& InT
 	CurrentEditingStillCameraCategoryText = InText;
 }
 
-void UNavigationPanel::HandleEditAnimatedCameraPanelExited(TArray<FAnimatedCameraNodeData>& InOutCameraNodeDatas)
+void UNavigationPanel::UpdatePanelCameras(const FString& InJsonString)
+{
+	FNavigationCameraData NavData;
+	FJsonObjectConverter::JsonObjectStringToUStruct(InJsonString, &NavData, 0, 0);
+
+	FNavigationCameraData_ID NavData_ID;
+	FJsonObjectConverter::JsonObjectStringToUStruct(InJsonString, &NavData_ID, 0, 0);
+
+	UpdatePanelCameras(NavData, NavData_ID);
+}
+
+void UNavigationPanel::UpdatePanelCameras(const FNavigationCameraData& InNavData, const FNavigationCameraData_ID& InNavIds)
+{
+	//Draw animated cameras
+	CameraNodeDatas = InNavData.AnimatedCamera;
+	CameraNodeIds = InNavIds.AnimatedCamera;
+
+	RefreshAnimatedCameraContainer();
+
+	//Draw still cameras
+	for (int32 Index = 0; Index < InNavData.StillCameras.Num(); ++Index)
+	{
+		const FCameraViewInfo& StillInfo = InNavData.StillCameras[Index];
+		const int32 Id = InNavIds.StillCameras.IsValidIndex(Index) ? InNavIds.StillCameras[Index].Id : -1;
+		AddNewStillCameraToScrollBox(FText::FromString(StillInfo.CameraName), FText::FromString(StillInfo.CameraCategory), StillInfo.Rotation, StillInfo.Location, Id);
+	}
+}
+
+void UNavigationPanel::HandleCamerasAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		const FString Json = Response->GetContentAsString();
+		UpdatePanelCameras(Json);
+	}
+}
+
+void UNavigationPanel::HandleAddStillCameraAPICompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (bWasSuccessful && EHttpResponseCodes::IsOk(Response->GetResponseCode()))
+	{
+		const FString& Content = Response->GetContentAsString();
+
+		FCameraViewInfo View;
+		FJsonObjectConverter::JsonObjectStringToUStruct(Content, &View);
+
+		FCameraNodeData_ID Id;
+		FJsonObjectConverter::JsonObjectStringToUStruct(Content, &Id);
+
+		AddNewStillCameraToScrollBox(FText::FromString(View.CameraName), FText::FromString(View.CameraCategory), View.Rotation, View.Location, Id.Id);
+	}
+}
+
+void UNavigationPanel::HandleEditAnimatedCameraPanelExited(TArray<FAnimatedCameraNodeData>& InOutCameraNodeDatas, const TArray<FCameraNodeData_ID>& InIds)
 {
 	HamburgerButton->OnClicked.Broadcast();
+
+	//Check to see if we need to update the database
+	if (UseApi())
+	{
+		const TSet<FCameraNodeData_ID> NewIds(InIds);
+		const TSet<FCameraNodeData_ID> ToUpdateIds = NewIds.Difference(TSet<FCameraNodeData_ID>(CameraNodeIds));
+		
+		for (int32 Index = 0; Index < InIds.Num(); ++Index)
+		{
+			bool bShouldUpdate = false;
+			const FCameraNodeData_ID& NewId = InIds[Index];
+			const FAnimatedCameraNodeData& NewData = InOutCameraNodeDatas[Index];
+			if (CameraNodeIds.Contains(NewId))
+			{
+				const int32 OldDataIndex = CameraNodeIds.IndexOfByKey(NewId);
+				const FAnimatedCameraNodeData& OldData = CameraNodeDatas[OldDataIndex];
+				if (NewData != OldData)
+				{
+					bShouldUpdate = true;
+				}
+			}
+			else 
+			{
+				bShouldUpdate = true;
+			}
+
+			if (bShouldUpdate)
+			{
+				FString Json;
+				FJsonObjectConverter::UStructToJsonObjectString(NewData, Json);
+
+				FHttpRequestPtr UpdateRequest = CreateRequest(TEXT("PUT"), TEXT("animated"), NewId.Id);
+				UpdateRequest->SetContentAsString(Json);
+				UpdateRequest->ProcessRequest();
+			}
+		}
+	}
+
 	CameraNodeDatas = MoveTemp(InOutCameraNodeDatas);
+	CameraNodeIds = InIds;
 	RefreshAnimatedCameraContainer();
 }
 

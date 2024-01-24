@@ -51,4 +51,41 @@ struct FAnimatedCameraNodeData
 	bool bHasLoadedData;
 
 	FString ToString() const;
+
+	friend bool operator==(const FAnimatedCameraNodeData& InLHS, const FAnimatedCameraNodeData& InRHS);
+	friend bool operator!=(const FAnimatedCameraNodeData& InLHS, const FAnimatedCameraNodeData& InRHS);
 };
+
+//Helper structs to get the id
+USTRUCT()
+struct FCameraNodeData_ID
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	int32 Id = -1;
+
+	friend uint32 GetTypeHash(const FCameraNodeData_ID& InData)
+	{
+		return InData.Id;
+	}
+
+	friend bool operator==(const FCameraNodeData_ID& InLHS, const FCameraNodeData_ID& InRHS)
+	{
+		return InLHS.Id == InRHS.Id;
+	}
+};
+
+
+
+USTRUCT()
+struct FNavigationCameraData_ID
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FCameraNodeData_ID> AnimatedCamera;
+	UPROPERTY()
+	TArray<FCameraNodeData_ID> StillCameras;
+};
+//
