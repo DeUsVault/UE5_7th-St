@@ -4,6 +4,7 @@
 #include "EditAnimatedCameraPanel.h"
 
 #include "CivilFXCore/CommonCore/CivilFXPawn.h"
+#include "CivilFXCore/UIRuntime/NavigationPanel.h"
 
 #include "Engine/SceneCapture2D.h"
 #include "Components/SceneCaptureComponent2D.h"
@@ -53,16 +54,18 @@ void UEditAnimatedCameraPanel::OnPanelSelected()
 	PlayAnimation(PanelAnim);
 }
 
-void UEditAnimatedCameraPanel::RefreshPanel(const TArray<FAnimatedCameraNodeData>& InCameraNodeDatas)
+void UEditAnimatedCameraPanel::RefreshPanel(const TArray<FAnimatedCameraNodeData>& InCameraNodeDatas,
+	const TArray<FCameraNodeData_ID>& InIds)
 {
-
 	TArray<FString> CategorySourceNames;
 	CategorySourceNames.Add(TEXT("Default"));
 
-	for (const FAnimatedCameraNodeData& CameraNodeData : InCameraNodeDatas)
+	for (int32 Index = 0; Index< InCameraNodeDatas.Num(); ++Index)
 	{
+		const FAnimatedCameraNodeData& CameraNodeData = InCameraNodeDatas[Index];
 		TSharedPtr<FAnimatedCameraNodeData> SharedCameraNodeData = MakeShared<FAnimatedCameraNodeData>(CameraNodeData);
-		OverviewPanel->AddChild(SharedCameraNodeData);
+		const int32 Id = InIds.IsValidIndex(Index) ? InIds[Index].Id : -1;
+		OverviewPanel->AddChild(SharedCameraNodeData, Id);
 		CategorySourceNames.AddUnique(CameraNodeData.Category);
 	}
 
@@ -88,12 +91,13 @@ void UEditAnimatedCameraPanel::HandleAddNodeButtonClicked()
 void UEditAnimatedCameraPanel::HandleExitButtonClicked()
 {
 	GetWorld()->GetFirstPlayerController()->GetLocalPlayer()->ViewportClient->EngineShowFlags.Rendering = true;
-	TArray<FAnimatedCameraNodeData> CameraNodeDatas = OverviewPanel->GetAllCameraNodeData();
+	TArray<FCameraNodeData_ID> Ids;
+	TArray<FAnimatedCameraNodeData> CameraNodeDatas = OverviewPanel->GetAllCameraNodeData(Ids);
 	for (FAnimatedCameraNodeData& Data : CameraNodeDatas)
 	{
 		Data.bHasLoadedData = true;
 	}
-	OnEditAnimatedCameraPanelExited.Broadcast(CameraNodeDatas);
+	OnEditAnimatedCameraPanelExited.Broadcast(CameraNodeDatas, Ids);
 	ScenceCapture2D->Destroy(false, false);
 
 	/** Let other panels cleaning up too*/

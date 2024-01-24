@@ -12,6 +12,8 @@ class UWidgetAnimation;
 class UTexture2D;
 class UUserWidget;
 class UMainMenu;
+class UCivilFXCoreSettings;
+class UButton;
 
 UENUM()
 enum class EPanelStatus
@@ -45,13 +47,18 @@ public:
     UPROPERTY(meta=(BindWidget))
     UMainMenu* MainMenu;
 
+   UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
+   UButton* ExitButton;
+
 protected:
     UFUNCTION()
     void OnHambergerButtonClicked();
 
     virtual void NativeConstruct() override;
 
-    
+    UFUNCTION(BlueprintCallable)
+    bool IsPixelStreamingEnabled() const;
+
 private:
     /**
     * Set new texture for button

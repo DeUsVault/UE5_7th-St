@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "MainMenu.h"
+#include "Interfaces/IPluginManager.h"
 
 void UMainHUDWidget::NativeConstruct()
 {
@@ -25,6 +26,14 @@ void UMainHUDWidget::NativeConstruct()
 		MainMenu->SetReferenceToHamburgerButton(HambergerButton);
 	}
 }
+
+
+bool UMainHUDWidget::IsPixelStreamingEnabled() const
+{
+	TSharedPtr<IPlugin> PixelStreamPlugin = IPluginManager::Get().FindPlugin(TEXT("PixelStreaming"));
+	return PixelStreamPlugin.IsValid();
+}
+
 
 void UMainHUDWidget::OnHambergerButtonClicked()
 {
