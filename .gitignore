@@ -77,4 +77,9 @@ DerivedDataCache/*
 [Dd]ata/
 [Cc]aptures/
 
+
+# Civil FX CorE Config
+Config/DefaultCivilFXCoreConfig.ini
+
+
 lfs/*

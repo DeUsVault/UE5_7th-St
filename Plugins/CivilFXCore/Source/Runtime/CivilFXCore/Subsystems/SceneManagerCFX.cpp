@@ -171,6 +171,17 @@ bool USceneManagerCFX::GetRayTracingEnabled() const
 	return bRTEnabled;
 }
 
+void USceneManagerCFX::SetTrafficEnabled(bool bInEnabled)
+{
+	bTrafficEnabled = bInEnabled;
+}
+
+
+bool USceneManagerCFX::GetTrafficEnabled() const
+{
+	return bTrafficEnabled;
+}
+
 
 //
 //void USceneManagerCFX::SetAAOption(int32 OptionIndex)
