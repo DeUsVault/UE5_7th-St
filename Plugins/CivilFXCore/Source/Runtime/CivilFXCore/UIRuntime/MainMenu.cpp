@@ -6,7 +6,7 @@
 #include "MainMenuSubPanel.h"
 #include "Components/TextBlock.h"
 #include "NavigationPanel.h"
-
+#include "CivilFXCore/CommonCore/CivilFXCoreSettings.h"
 
 void UMainMenu::SetReferenceToHamburgerButton(class UButton* ButtonRef) const
 {
@@ -26,12 +26,19 @@ void UMainMenu::NativeConstruct()
 	*/
 	NavButton->OnClicked.AddDynamic(this, &UMainMenu::OnNavigationPanelSelected);
 
+
 	/*
 	FScriptDelegate RendDelegate;
 	RendDelegate.BindUFunction(this, FName("OnRenderingPanelSelected"));
 	RendButton->OnClicked.Add(RendDelegate);
 	*/
 	RendButton->OnClicked.AddDynamic(this, &UMainMenu::OnRenderingPanelSelected);
+
+	const UCivilFXCoreSettings* CoreSettings = GetDefault<UCivilFXCoreSettings>();
+	if (CoreSettings->bUseAPI)
+	{
+		RendButton->SetVisibility(ESlateVisibility::Hidden);
+	}
 
 	/*
 	FScriptDelegate SettDelegate;

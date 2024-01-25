@@ -7,6 +7,7 @@
 #include "TimerManager.h"
 #include "MainMenu.h"
 #include "Interfaces/IPluginManager.h"
+#include "CivilFXCore/CommonCore/CivilFXCoreSettings.h"
 
 void UMainHUDWidget::NativeConstruct()
 {
@@ -25,14 +26,20 @@ void UMainHUDWidget::NativeConstruct()
 	{
 		MainMenu->SetReferenceToHamburgerButton(HambergerButton);
 	}
+
+	const UCivilFXCoreSettings* CoreSettings = GetDefault<UCivilFXCoreSettings>();
+	if (CoreSettings->bUseAPI)
+	{
+		ExitButton->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
-
-bool UMainHUDWidget::IsPixelStreamingEnabled() const
-{
-	TSharedPtr<IPlugin> PixelStreamPlugin = IPluginManager::Get().FindPlugin(TEXT("PixelStreaming"));
-	return PixelStreamPlugin.IsValid();
-}
+//
+//bool UMainHUDWidget::IsPixelStreamingEnabled() const
+//{
+//	TSharedPtr<IPlugin> PixelStreamPlugin = IPluginManager::Get().FindPlugin(TEXT("PixelStreaming"));
+//	return PixelStreamPlugin.IsValid();
+//}
 
 
 void UMainHUDWidget::OnHambergerButtonClicked()
