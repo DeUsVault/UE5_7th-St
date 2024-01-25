@@ -56,8 +56,8 @@ protected:
 
     virtual void NativeConstruct() override;
 
-    UFUNCTION(BlueprintCallable)
-    bool IsPixelStreamingEnabled() const;
+    //UFUNCTION(BlueprintCallable)
+    //bool IsPixelStreamingEnabled() const;
 
 private:
     /**
