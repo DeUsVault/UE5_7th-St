@@ -9,6 +9,7 @@
 
 class UEditAnimatedCameraOverviewButton;
 class UNavigationPanel;
+struct FCameraNodeData_ID;
 
 /**
  * 
@@ -19,13 +20,13 @@ class CIVILFXCORE_API UEditAnimatedCameraPanel : public UMainMenuSubPanel
 	GENERATED_BODY()
 
 public:
-
-    DECLARE_MULTICAST_DELEGATE_OneParam(FOnEditAnimatedCameraPanelExited, TArray<FAnimatedCameraNodeData>&)
+    DECLARE_MULTICAST_DELEGATE_TwoParams(FOnEditAnimatedCameraPanelExited, TArray<FAnimatedCameraNodeData>&, const TArray<FCameraNodeData_ID>&)
     FOnEditAnimatedCameraPanelExited OnEditAnimatedCameraPanelExited;
 
     virtual void NativeConstruct() override;
     virtual void OnPanelSelected() override;
-    void RefreshPanel(const TArray<FAnimatedCameraNodeData>& InCameraNodeDatas);
+    void RefreshPanel(const TArray<FAnimatedCameraNodeData>& InCameraNodeDatas,
+        const TArray<FCameraNodeData_ID>& InIds);
 
     class ASceneCapture2D* GetSceneCapture2D () const { return ScenceCapture2D; };
 

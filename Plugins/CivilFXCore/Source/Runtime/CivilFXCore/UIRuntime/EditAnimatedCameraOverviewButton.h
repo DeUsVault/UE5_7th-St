@@ -22,8 +22,9 @@ public:
     FText GetCameraName() const;
     void SetHighlightText(FText InText);
     void UpdateCameraNodeData();
-    void SetCameraNodeData(TSharedPtr<FAnimatedCameraNodeData> InCameraData);
+    void SetCameraNodeData(TSharedPtr<FAnimatedCameraNodeData> InCameraData, int32 InId);
     TSharedPtr<FAnimatedCameraNodeData> GetCameraNodeData() const;
+    int32 GetCameraNodeId() const;
 
     bool bPendingDelete;
 
@@ -41,6 +42,7 @@ protected:
 
 private:
     TSharedPtr<FAnimatedCameraNodeData> CameraNodeData;
+    int32 Id = -1;
   
     UPROPERTY(Transient)
     UWidget* AnchorMenuContent;

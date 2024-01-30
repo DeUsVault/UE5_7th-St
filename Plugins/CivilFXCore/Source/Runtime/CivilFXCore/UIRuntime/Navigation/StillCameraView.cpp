@@ -4,13 +4,14 @@
 #include "StillCameraView.h"
 
 #include "Components/TreeView.h"
+#include "CivilFXCore/UIRuntime/NavigationPanel.h"
 
 void UStillCameraView::NativeConstruct()
 {
 	TreeViewContainer->SetOnGetItemChildren(this, &UStillCameraView::HandleGetItemChildren);
 }
 
-void UStillCameraView::AddItemData(const FCameraViewInfo& InView)
+void UStillCameraView::AddItemData(const FCameraViewInfo& InView, int32 Id)
 {
 	//Check if should create a new root
 	int32 RootIndex = Roots.IndexOfByPredicate([CameraCategory=InView.CameraCategory](UCameraHierarchyRoot* Root)
@@ -30,7 +31,7 @@ void UStillCameraView::AddItemData(const FCameraViewInfo& InView)
 		Roots.Add(CurrentRoot);
 	}
 
-	UStillCameraHierarchyWidget* Object = UStillCameraHierarchyWidget::MakeObject(InView);
+	UStillCameraHierarchyWidget* Object = UStillCameraHierarchyWidget::MakeObject(InView, Id);
 	CurrentRoot->AddChild(Object);
 
 	//Do this later to avoid an extra UTreeView::RequestRefresh();
@@ -79,6 +80,19 @@ TArray<FString> UStillCameraView::GetRootsName() const
 	return RootsName;
 }
 
+int32 UStillCameraView::GetItemIndex(UCameraHierarchyModel* Model) const
+{
+	TArray<UCameraHierarchyModel*> Items;
+	for (UCameraHierarchyRoot* Root : Roots)
+	{
+		TArray<UCameraHierarchyModel*> Children;
+		Root->GetAllChildren(Children);
+		Items.Append(Children);
+	}
+
+	return Items.IndexOfByKey(Model);
+}
+
 void UStillCameraView::RequestRemoveItem(UCameraHierarchyModel* Model)
 {
 	for (UCameraHierarchyRoot* Root : Roots)
@@ -86,7 +100,13 @@ void UStillCameraView::RequestRemoveItem(UCameraHierarchyModel* Model)
 		if (Root->IsParentOf(Model))
 		{
 			Root->RemoveChild(Model);
-			TreeViewContainer->RequestRefresh();		
+			TreeViewContainer->RequestRefresh();
+
+			//Remove from database
+			if (UStillCameraHierarchyWidget* StillModel = Cast<UStillCameraHierarchyWidget>(Model))
+			{
+				UNavigationPanel::RemoveStillCamera(StillModel->Id);
+			}
 		}
 	}
 }

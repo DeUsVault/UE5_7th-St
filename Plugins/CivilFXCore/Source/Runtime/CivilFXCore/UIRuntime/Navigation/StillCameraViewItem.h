@@ -8,6 +8,8 @@
 #include "Blueprint/DragDropOperation.h"
 #include "StillCameraViewItem.generated.h"
 
+class UMainMenu;
+
 enum class EItemDropZone:int32;
 
 USTRUCT(BlueprintType)
@@ -37,6 +39,8 @@ public:
 
 	/* @returns the widget name to use for the tree item */
 	virtual FText GetText() const PURE_VIRTUAL(UCameraHierarchyModel::GetText, return FText::GetEmpty(););
+
+	virtual int32 GetId() const { return -1; }
 
 	void AddChild(UCameraHierarchyModel* Model);
 
@@ -70,6 +74,8 @@ public:
 	virtual TOptional<EItemDropZone> HandleCanAcceptDrop(const FDragDropEvent& DragDropEvent, EItemDropZone DropZone, UCameraHierarchyModel* TargetItem);
 	//~
 
+	int32 DraggedIndex = INDEX_NONE;
+
 protected:
 	UPROPERTY()
 	TArray<UCameraHierarchyModel*> Children;
@@ -88,7 +94,6 @@ public:
 	virtual bool IsRoot() const { return true; }
 	virtual FText GetText() const override { return RootText; }
 
-
 	bool IsSame(const FString& InRootName) { return RootText.ToString().Equals(InRootName); };
 	void SetRootText(const FString& InRootName) { RootText = FText::FromString(InRootName); }
 
@@ -96,7 +101,7 @@ private:
 	FText RootText;
 };
 
-UCLASS()
+UCLASS(BlueprintType)
 class UStillCameraHierarchyWidget : public UCameraHierarchyModel
 {
 	GENERATED_BODY()
@@ -104,10 +109,13 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FCameraViewInfo CameraView;
 
-	virtual FText GetText() const override { return FText::FromString(CameraView.CameraName); }
-	
-	static UStillCameraHierarchyWidget* MakeObject(const FCameraViewInfo& InView);
+	UPROPERTY(BlueprintReadOnly)
+	int32 Id = -1;
 
+	virtual FText GetText() const override { return FText::FromString(CameraView.CameraName); }
+	virtual int32 GetId() const override { return Id; }
+
+	static UStillCameraHierarchyWidget* MakeObject(const FCameraViewInfo& InView, int32 Id);
 };
 
 //==
@@ -120,6 +128,16 @@ UCLASS()
 class CIVILFXCORE_API UStillCameraViewItem : public UUserWidget, public IUserObjectListEntry
 {
 	GENERATED_BODY()
+
+public:
+	virtual void NativeConstruct() override;
+
+	UPROPERTY(BlueprintReadOnly)
+	UCameraHierarchyModel* Model;
+
+	UPROPERTY(BlueprintReadOnly)
+	UMainMenu* MainMenu;
+
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="View Item Settings")
@@ -158,12 +176,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_RefreshViewItem(const FText& InItemText, bool bIsRoot, bool bIsEditDragDrop);
 
-	UCameraHierarchyModel* Model;
-
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
 	TOptional<EItemDropZone> ItemDropZone;
 	UStillCameraView* GetOuterOwnerView() const;
-
 };

@@ -6,12 +6,17 @@
 #include "CivilFXCore/CommonCore/CivilFXPawn.h"
 #include "StillCameraView.h"
 #include "CivilFXCore/UIRuntime/Components/DragDropDecorator.h"
-
+#include "CivilFXCore/UIRuntime/NavigationPanel.h"
+#include "Interfaces/IHttpRequest.h"
 
 #include "Styling/CoreStyle.h"
 #include "Components/TreeView.h"
 #include "Components/TextBlock.h"
 #include "Components/Border.h"
+
+#include "CivilFXCore/UIRunTime/MainHUD.h"
+#include "CivilFXCore/UIRunTime/MainHUDWidget.h"
+#include "CivilFXCore/UIRunTime/MainMenu.h"
 
 //==============
 
@@ -108,15 +113,25 @@ TOptional<EItemDropZone> UCameraHierarchyModel::HandleCanAcceptDrop(const FDragD
 //=============
 
 
-UStillCameraHierarchyWidget* UStillCameraHierarchyWidget::MakeObject(const FCameraViewInfo& InView)
+UStillCameraHierarchyWidget* UStillCameraHierarchyWidget::MakeObject(const FCameraViewInfo& InView, int32 Id)
 {
 	UStillCameraHierarchyWidget* Object = NewObject<UStillCameraHierarchyWidget>();
 	Object->CameraView = InView;
-
+	Object->Id = Id;
 	return Object;
 }
 
 //==============
+
+void UStillCameraViewItem::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	AMainHUD* HUD = Cast<AMainHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	UMainHUDWidget* HUDWidget = Cast<UMainHUDWidget>(HUD->MainHUDWidget);
+	MainMenu = Cast<UMainMenu>(HUDWidget->MainMenu);
+	check(MainMenu);
+}
 
 void UStillCameraViewItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
@@ -131,7 +146,7 @@ void UStillCameraViewItem::NativeOnListItemObjectSet(UObject* ListItemObject)
 	}
 	Model = CastChecked<UCameraHierarchyModel>(ListItemObject);
 	Model->SetOuterOwner(GetOuterOwnerView());
-	BP_RefreshViewItem(Model->GetText(), Model->IsRoot(), bIsEditDragDrog & !Model->IsRoot() /*Not supported dragdrop root*/);
+	BP_RefreshViewItem(Model->GetText(), Model->IsRoot(), bIsEditDragDrog && !Model->IsRoot() /*Not supported dragdrop root*/);
 }
 
 void UStillCameraViewItem::NativeOnItemSelectionChanged(bool bIsSelected)
@@ -215,6 +230,8 @@ void UStillCameraViewItem::NativeOnDragDetected(const FGeometry& InGeometry, con
 	UE_LOG(LogTemp, Warning, TEXT("UStillCameraViewItem::NativeOnDragDetected"));
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
+	Model->DraggedIndex = GetOuterOwnerView()->GetItemIndex(Model);
+
 	OutOperation = NewObject<UDragDropOperation>(this);
 	OutOperation->Payload = Model;
 	OutOperation->Pivot = EDragPivot::CenterLeft;
@@ -259,6 +276,7 @@ bool UStillCameraViewItem::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 
 	//
 	UCameraHierarchyModel* DraggedItem = CastChecked<UCameraHierarchyModel>(InOperation->Payload);
+
 	if (IsRoot())
 	{
 		if (!Model->IsParentOf(DraggedItem))
@@ -290,6 +308,24 @@ bool UStillCameraViewItem::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 			DroggedItemParent->InsertChild(DraggedItem, Model);
 		}
 	}
+
+	const int32 OldIndex = DraggedItem->DraggedIndex;
+	const int32 NewIndex = GetOuterOwnerView()->GetItemIndex(DraggedItem);
+
+	const int32 Step = NewIndex - OldIndex;
+	const FString MoveDirection = Step < 0 ? TEXT("Up") : TEXT("Down");
+	const FString NewCategory = DraggedItem->GetParent()->GetText().ToString();
+	const FString Content = FString::Format(TEXT(\
+		"{\
+			\"moveDirection\": \"{0}\",\
+			\"moveBy\": {1},\
+			\"category\": \"{2}\"\
+		}"),
+		{ MoveDirection, FMath::Abs(Step), NewCategory });
+
+	TSharedRef<IHttpRequest> PatchRequest = UNavigationPanel::CreateRequest(TEXT("PATCH"), TEXT("still"), DraggedItem->GetId());
+	PatchRequest->SetContentAsString(Content);
+	PatchRequest->ProcessRequest();
 
 	GetOwningListView()->RequestRefresh();
 	return true;

@@ -21,6 +21,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetSceneFOV(float InFoV);
+	UFUNCTION(BlueprintCallable)
 	float GetSceneFOV() const;
 
 	UFUNCTION(BlueprintCallable)
@@ -35,6 +36,11 @@ public:
 	void SetRayTracingEnabled(bool bInEnabled);
 	bool GetRayTracingEnabled() const;
 
+	UFUNCTION(BlueprintCallable)
+	void SetTrafficEnabled(bool bInEnabled);
+	UFUNCTION(BlueprintCallable)
+	bool GetTrafficEnabled() const;
+
 	//UFUNCTION(BlueprintCallable)
 	//void SetAAOption(int32 OptionIndex);
 
@@ -44,6 +50,7 @@ private:
 	bool bLabelsEnabled;
 	bool bPedEnabled;
 	bool bRTEnabled;
+	bool bTrafficEnabled = true;
 #if WITH_EDITORONLY_DATA
 	int32 CachedMSAACount;
 #endif

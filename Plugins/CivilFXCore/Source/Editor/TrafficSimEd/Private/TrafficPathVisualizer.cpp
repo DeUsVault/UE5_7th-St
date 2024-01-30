@@ -381,22 +381,12 @@ FVector FTrafficPathVisualizer::GetProjectedNode(const FVector& CurrentNode, flo
 		return CurrentNode;
 	}
 
-	FHitResult Hit(1.0f);
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(ProjectingNode), true);
-	if (TrafficPathComp->GetWorld()->LineTraceSingleByChannel(Hit, CurrentNode + FVector::UpVector * TraceDistance, CurrentNode + FVector::DownVector * WORLD_MAX, ECC_WorldStatic, Params))
+	FVector ProjectedNode = CurrentNode;
+	if (UTrafficPath::GetProjectedNode(TrafficPathComp, ProjectedNode, TraceDistance))
 	{
-		return Hit.Location;
+		return ProjectedNode;
 	}
-	else
-	{
-		//if we don't hit anything try one more time
-		//by moving the node up (TraceDistance * 2.0) unit and cast down again
-		FVector NewNode = CurrentNode + FVector::UpVector * TraceDistance * 2.0f;
-		if (TrafficPathComp->GetWorld()->LineTraceSingleByChannel(Hit, NewNode, NewNode + FVector::DownVector * WORLD_MAX, ECC_WorldStatic, Params))
-		{
-			return Hit.Location;
-		}
-	}
+	
 	return CurrentNode;
 }
 
