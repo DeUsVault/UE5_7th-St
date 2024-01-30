@@ -19,7 +19,8 @@ PRAGMA_DISABLE_OPTIMIZATION
 void USceneManagerCFX::Initialize(FSubsystemCollectionBase& Collection)
 {
 	bLabelsEnabled = true;
-	bFoliageEnabled = true;
+	bExistingFoliageEnabled = false;
+	bProposedFoliageEnabled = false;
 	bPedEnabled = false;
 	bRTEnabled = true;
 
@@ -66,37 +67,43 @@ float USceneManagerCFX::GetSceneFOV() const
 	return FoV;
 }
 
-void USceneManagerCFX::SetFoliageEnabled(bool bInEnabled)
+void USceneManagerCFX::SetExistingFoliageEnabled(bool bInEnabled)
 {
 	UPhaseManager* PhaseManager = GetWorld()->GetGameInstance()->GetSubsystem<UPhaseManager>();
 
-	if (bInEnabled != bFoliageEnabled)
+	if (bInEnabled != bExistingFoliageEnabled)
 	{
-		bFoliageEnabled = bInEnabled;
+		bExistingFoliageEnabled = bInEnabled;
 
 		//if (CachedFoliages.Num() == 0)
 		//{
 			//https://forums.unrealengine.com/t/solved-get-all-actors-from-sublevels/120606/3
-			const TArray<ULevelStreaming*>& streamedLevels = GetWorld()->GetStreamingLevels();
-			for (ULevelStreaming* streamingLevel : streamedLevels)
+		const TArray<ULevelStreaming*>& streamedLevels = GetWorld()->GetStreamingLevels();
+		for (ULevelStreaming* streamingLevel : streamedLevels)
+		{
+			FString levelName = streamingLevel->GetWorldAssetPackageName();
+
+			TArray<AActor*> Foliages;
+			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
+			for (AActor* Foliage : Foliages)
 			{
-				FString levelName = streamingLevel->GetWorldAssetPackageName();			
+				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
 
-				TArray<AActor*> Foliages;
-				UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
-				for (AActor* Foliage : Foliages)
+				if (PhaseElement)
 				{
-					if (Foliage->ActorHasTag("Trees"))
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
 					{
-						Foliage->SetActorHiddenInGame(!bFoliageEnabled);
+						if (Phase == EPhaseType::Existing)
+							Foliage->SetActorHiddenInGame(!bExistingFoliageEnabled);
 					}
-
-					//else
-					//	CachedFoliages.AddUnique(Foliage);
 				}
+
+				//else
+				//	CachedFoliages.AddUnique(Foliage);
 			}
-			//~
 		}
+		//~
+	}
 
 		//for (AActor* Foliage : CachedFoliages)
 		//{
@@ -105,9 +112,60 @@ void USceneManagerCFX::SetFoliageEnabled(bool bInEnabled)
 	//}
 }
 
-bool USceneManagerCFX::GetFoliageEnabled() const
+void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 {
-	return bFoliageEnabled;
+	UPhaseManager* PhaseManager = GetWorld()->GetGameInstance()->GetSubsystem<UPhaseManager>();
+
+	if (bInEnabled != bExistingFoliageEnabled)
+	{
+		bExistingFoliageEnabled = bInEnabled;
+
+		//if (CachedFoliages.Num() == 0)
+		//{
+			//https://forums.unrealengine.com/t/solved-get-all-actors-from-sublevels/120606/3
+		const TArray<ULevelStreaming*>& streamedLevels = GetWorld()->GetStreamingLevels();
+		for (ULevelStreaming* streamingLevel : streamedLevels)
+		{
+			FString levelName = streamingLevel->GetWorldAssetPackageName();
+
+			TArray<AActor*> Foliages;
+			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
+			for (AActor* Foliage : Foliages)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Proposed)
+							Foliage->SetActorHiddenInGame(!bExistingFoliageEnabled);
+					}
+				}
+
+				//else
+				//	CachedFoliages.AddUnique(Foliage);
+			}
+		}
+		//~
+	}
+
+	//for (AActor* Foliage : CachedFoliages)
+	//{
+	//	Foliage->SetActorHiddenInGame(!bFoliageEnabled);
+	//}
+//}
+}
+
+
+bool USceneManagerCFX::GetExistingFoliageEnabled() const
+{
+	return bExistingFoliageEnabled;
+}
+
+bool USceneManagerCFX::GetProposedFoliageEnabled() const
+{
+	return bProposedFoliageEnabled;
 }
 
 void USceneManagerCFX::SetLabelsEnabled(bool bInEnabled)
