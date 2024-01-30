@@ -37,7 +37,12 @@ void UPhaseManager::SwitchPhase(EPhaseType InPhaseType, EPhaseMode InPhaseMode)
 					break;
 				}
 
-				else if (CurrentActor->ActorHasTag("Foliage") && !SceneManager->GetFoliageEnabled())
+				else if (CurrentActor->ActorHasTag("Existing Foliage") && !SceneManager->GetExistingFoliageEnabled())
+				{
+					break;
+				}
+
+				else if (CurrentActor->ActorHasTag("Proposed Foliage") && !SceneManager->GetProposedFoliageEnabled())
 				{
 					break;
 				}
