@@ -83,8 +83,8 @@ void USceneManagerCFX::SetExistingFoliageEnabled(bool bInEnabled)
 		{
 			FString levelName = streamingLevel->GetWorldAssetPackageName();
 
-			TArray<AActor*> Foliages;
-			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
+			TArray<AActor*> ExistingFoliages;
+			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), ExistingFoliages);
 			for (AActor* Foliage : Foliages)
 			{
 				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
@@ -128,8 +128,8 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 		{
 			FString levelName = streamingLevel->GetWorldAssetPackageName();
 
-			TArray<AActor*> Foliages;
-			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
+			TArray<AActor*> ProposedFoliages;
+			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), ProposedFoliages);
 			for (AActor* Foliage : Foliages)
 			{
 				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
@@ -146,6 +146,10 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 				//else
 				//	CachedFoliages.AddUnique(Foliage);
 			}
+
+			TArray<AActor*> ProposedGrates;
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AInstancedFoliageActor::StaticClass(), ProposedGrates);
+
 		}
 		//~
 	}
