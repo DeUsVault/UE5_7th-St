@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/LevelStreaming.h"
 #include "InstancedFoliageActor.h"
+#include "Engine/StaticMeshActor.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/Engine.h"
 #include "CivilFXCore/CommonCore/PhaseManager.h"
@@ -85,7 +86,7 @@ void USceneManagerCFX::SetExistingFoliageEnabled(bool bInEnabled)
 
 			TArray<AActor*> ExistingFoliages;
 			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), ExistingFoliages);
-			for (AActor* Foliage : Foliages)
+			for (AActor* Foliage : ExistingFoliages)
 			{
 				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
 
@@ -100,6 +101,24 @@ void USceneManagerCFX::SetExistingFoliageEnabled(bool bInEnabled)
 
 				//else
 				//	CachedFoliages.AddUnique(Foliage);
+			}
+
+			TArray<AActor*> ExistingGrates;
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AStaticMeshActor::StaticClass(), "Existing_Grates", ExistingGrates);
+			for (AActor* Grate : ExistingGrates)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Grate->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Existing)
+							Grate->SetActorHiddenInGame(!bExistingFoliageEnabled);
+					}
+				}
+
+				Grate->SetActorHiddenInGame(!bExistingFoliageEnabled);
 			}
 		}
 		//~
@@ -130,7 +149,7 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 
 			TArray<AActor*> ProposedFoliages;
 			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), ProposedFoliages);
-			for (AActor* Foliage : Foliages)
+			for (AActor* Foliage : ProposedFoliages)
 			{
 				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
 
@@ -148,7 +167,20 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 			}
 
 			TArray<AActor*> ProposedGrates;
-			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AInstancedFoliageActor::StaticClass(), ProposedGrates);
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AStaticMeshActor::StaticClass(), "Proposed_Grates", ProposedGrates);
+			for (AActor* Grate : ProposedGrates)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Grate->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Proposed)
+							Grate->SetActorHiddenInGame(!bProposedFoliageEnabled);
+					}
+				}
+			}
 
 		}
 		//~
