@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-
 #include "SceneManagerCFX.generated.h"
+
 
 /**
  * 
@@ -25,8 +25,12 @@ public:
 	float GetSceneFOV() const;
 
 	UFUNCTION(BlueprintCallable)
-	void SetFoliageEnabled(bool bInEnabled);
-	bool GetFoliageEnabled() const;
+	void SetExistingFoliageEnabled(bool bInEnabled);
+	UFUNCTION(BlueprintCallable)
+	void SetProposedFoliageEnabled(bool bInEnabled);
+	bool GetExistingFoliageEnabled() const;
+	bool GetProposedFoliageEnabled() const;
+
 
 	UFUNCTION(BlueprintCallable)
 	void SetLabelsEnabled(bool bInEnabled);
@@ -46,7 +50,8 @@ public:
 
 private:
 	float FoV;
-	bool bFoliageEnabled;
+	bool bExistingFoliageEnabled;
+	bool bProposedFoliageEnabled;
 	bool bLabelsEnabled;
 	bool bPedEnabled;
 	bool bRTEnabled;
