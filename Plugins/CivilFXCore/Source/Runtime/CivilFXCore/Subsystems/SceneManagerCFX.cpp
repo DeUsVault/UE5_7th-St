@@ -19,8 +19,8 @@ PRAGMA_DISABLE_OPTIMIZATION
 void USceneManagerCFX::Initialize(FSubsystemCollectionBase& Collection)
 {
 	bLabelsEnabled = true;
-	bExistingFoliageEnabled = false;
-	bProposedFoliageEnabled = false;
+	bExistingFoliageEnabled = true;
+	bProposedFoliageEnabled = true;
 	bPedEnabled = false;
 	bRTEnabled = true;
 
@@ -116,9 +116,9 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 {
 	UPhaseManager* PhaseManager = GetWorld()->GetGameInstance()->GetSubsystem<UPhaseManager>();
 
-	if (bInEnabled != bExistingFoliageEnabled)
+	if (bInEnabled != bProposedFoliageEnabled)
 	{
-		bExistingFoliageEnabled = bInEnabled;
+		bProposedFoliageEnabled = bInEnabled;
 
 		//if (CachedFoliages.Num() == 0)
 		//{
@@ -139,7 +139,7 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 					for (EPhaseType Phase : PhaseElement->PhaseTypes)
 					{
 						if (Phase == EPhaseType::Proposed)
-							Foliage->SetActorHiddenInGame(!bExistingFoliageEnabled);
+							Foliage->SetActorHiddenInGame(!bProposedFoliageEnabled);
 					}
 				}
 
