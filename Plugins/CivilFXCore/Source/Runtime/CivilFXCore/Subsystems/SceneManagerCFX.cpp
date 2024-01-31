@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/LevelStreaming.h"
 #include "InstancedFoliageActor.h"
+#include "Engine/StaticMeshActor.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/Engine.h"
 #include "CivilFXCore/CommonCore/PhaseManager.h"
@@ -21,6 +22,7 @@ void USceneManagerCFX::Initialize(FSubsystemCollectionBase& Collection)
 	bLabelsEnabled = true;
 	bExistingFoliageEnabled = true;
 	bProposedFoliageEnabled = true;
+	bProposedLandscapingEnabled = true;
 	bPedEnabled = false;
 	bRTEnabled = true;
 
@@ -83,9 +85,9 @@ void USceneManagerCFX::SetExistingFoliageEnabled(bool bInEnabled)
 		{
 			FString levelName = streamingLevel->GetWorldAssetPackageName();
 
-			TArray<AActor*> Foliages;
-			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
-			for (AActor* Foliage : Foliages)
+			TArray<AActor*> ExistingFoliages;
+			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), ExistingFoliages);
+			for (AActor* Foliage : ExistingFoliages)
 			{
 				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
 
@@ -100,6 +102,25 @@ void USceneManagerCFX::SetExistingFoliageEnabled(bool bInEnabled)
 
 				//else
 				//	CachedFoliages.AddUnique(Foliage);
+			}
+
+			TArray<AActor*> ExistingGrates;
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AStaticMeshActor::StaticClass(), "Existing_Grates", ExistingGrates);
+			for (AActor* Grate : ExistingGrates)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Grate->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Existing)
+							Grate->SetActorHiddenInGame(!bExistingFoliageEnabled);
+					}
+				}
+
+				else
+					Grate->SetActorHiddenInGame(!bExistingFoliageEnabled);
 			}
 		}
 		//~
@@ -128,9 +149,9 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 		{
 			FString levelName = streamingLevel->GetWorldAssetPackageName();
 
-			TArray<AActor*> Foliages;
-			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), Foliages);
-			for (AActor* Foliage : Foliages)
+			TArray<AActor*> ProposedFoliages;
+			UGameplayStatics::GetAllActorsOfClass(streamingLevel, AInstancedFoliageActor::StaticClass(), ProposedFoliages);
+			for (AActor* Foliage : ProposedFoliages)
 			{
 				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
 
@@ -146,6 +167,23 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 				//else
 				//	CachedFoliages.AddUnique(Foliage);
 			}
+
+			TArray<AActor*> ProposedGrates;
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AStaticMeshActor::StaticClass(), "Proposed_Grates", ProposedGrates);
+			for (AActor* Grate : ProposedGrates)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Grate->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Proposed)
+							Grate->SetActorHiddenInGame(!bProposedFoliageEnabled);
+					}
+				}
+			}
+
 		}
 		//~
 	}
@@ -155,6 +193,46 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 	//	Foliage->SetActorHiddenInGame(!bFoliageEnabled);
 	//}
 //}
+}
+
+void USceneManagerCFX::SetProposedLandscapingEnabled(bool bInEnabled)
+{
+	UPhaseManager* PhaseManager = GetWorld()->GetGameInstance()->GetSubsystem<UPhaseManager>();
+
+	if (bInEnabled != bProposedLandscapingEnabled)
+	{
+		bProposedLandscapingEnabled = bInEnabled;
+
+		//if (CachedFoliages.Num() == 0)
+		//{
+			//https://forums.unrealengine.com/t/solved-get-all-actors-from-sublevels/120606/3
+		const TArray<ULevelStreaming*>& streamedLevels = GetWorld()->GetStreamingLevels();
+		for (ULevelStreaming* streamingLevel : streamedLevels)
+		{
+			FString levelName = streamingLevel->GetWorldAssetPackageName();
+
+			TArray<AActor*> ProposedLandscaping;
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AStaticMeshActor::StaticClass(), "Proposed_Landscaping", ProposedLandscaping);
+			for (AActor* Foliage : ProposedLandscaping)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Proposed)
+							Foliage->SetActorHiddenInGame(!bProposedLandscapingEnabled);
+					}
+				}
+
+				else
+					Foliage->SetActorHiddenInGame(!bProposedLandscapingEnabled);
+
+			}
+		}
+
+	}
 }
 
 
@@ -167,6 +245,12 @@ bool USceneManagerCFX::GetProposedFoliageEnabled() const
 {
 	return bProposedFoliageEnabled;
 }
+
+bool USceneManagerCFX::GetProposedLandscapingEnabled() const
+{
+	return bProposedLandscapingEnabled;
+}
+
 
 void USceneManagerCFX::SetLabelsEnabled(bool bInEnabled)
 {
