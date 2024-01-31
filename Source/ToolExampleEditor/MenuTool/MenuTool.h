@@ -31,5 +31,5 @@ protected:
 	void OnTagToAddTextCommited(const FText& InText, ETextCommit::Type CommitInfo);
 
 private:
-	void InvokePhase(EPhaseType InPhaseType);
+	void InvokePhase(EPhaseType InPhaseType, EPhaseMode InPhaseMode);
 };
