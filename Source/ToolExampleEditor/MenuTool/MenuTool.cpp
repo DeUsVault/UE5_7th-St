@@ -102,7 +102,8 @@ void MenuTool::MakeSubMenu(FMenuBuilder &menuBuilder)
 void MenuTool::MenuCommand1()
 {
 	UE_LOG(LogClass, Log, TEXT("Proposed"));
-	InvokePhase(EPhaseType::Proposed);
+	InvokePhase(EPhaseType::Existing, EPhaseMode::Single);
+	InvokePhase(EPhaseType::Proposed, EPhaseMode::Additive);
 }
 
 FReply MenuTool::AddTag()
@@ -135,7 +136,7 @@ void MenuTool::OnTagToAddTextCommited(const FText& InText, ETextCommit::Type Com
 	TagToAdd = FName(*str.TrimStart()); 
 }
 
-void MenuTool::InvokePhase(EPhaseType InPhaseType)
+void MenuTool::InvokePhase(EPhaseType InPhaseType, EPhaseMode InPhaseMode)
 {
 #define GETENUMSTRING(etype, evalue) ( (FindObject<UEnum>(ANY_PACKAGE, TEXT(etype), true) != nullptr) ? FindObject<UEnum>(ANY_PACKAGE, TEXT(etype), true)->GetNameStringByIndex((int32)evalue) : FString("Invalid - are you sure enum uses UENUM() macro?") )
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("%s: %s"), TEXT("Invoking Phase Editor"), *GETENUMSTRING("EPhaseType", InPhaseType)));
@@ -149,7 +150,7 @@ void MenuTool::InvokePhase(EPhaseType InPhaseType)
 		{
 			GLog->Log(CurrentActor->GetName());
 			//always single mode
-			PhaseElement->DoPhase(InPhaseType, EPhaseMode::Single);
+			PhaseElement->DoPhase(InPhaseType, InPhaseMode);
 		}
 	}
 #undef GETENUMSTRING
