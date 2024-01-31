@@ -45,6 +45,9 @@ public:
 	void OnBeginCameraMovement(const FVector& NewLocation, const FRotator& NewRotation, float Duration=2.0f);
 	void OnEndCameraMovement();
 
+	UFUNCTION(BlueprintCallable)
+	bool IsMouseCursorOnWidget();
+
 	float DebugTime;
 
 	/** Orbit Panel functionalities*/
@@ -199,8 +202,6 @@ private:
 	uint8 TickRequestCount;
 	float InterpSpeed;
 	void HandleCameraMovement(float DeltaTime);
-
-	bool IsMouseCursorOnWidget();
 
 	void RequestEnableTick();
 	void RequestDisableTick();

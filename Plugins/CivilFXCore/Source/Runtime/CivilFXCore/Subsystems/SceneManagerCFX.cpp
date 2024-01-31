@@ -22,6 +22,7 @@ void USceneManagerCFX::Initialize(FSubsystemCollectionBase& Collection)
 	bLabelsEnabled = true;
 	bExistingFoliageEnabled = true;
 	bProposedFoliageEnabled = true;
+	bProposedLandscapingEnabled = true;
 	bPedEnabled = false;
 	bRTEnabled = true;
 
@@ -118,7 +119,8 @@ void USceneManagerCFX::SetExistingFoliageEnabled(bool bInEnabled)
 					}
 				}
 
-				Grate->SetActorHiddenInGame(!bExistingFoliageEnabled);
+				else
+					Grate->SetActorHiddenInGame(!bExistingFoliageEnabled);
 			}
 		}
 		//~
@@ -193,6 +195,46 @@ void USceneManagerCFX::SetProposedFoliageEnabled(bool bInEnabled)
 //}
 }
 
+void USceneManagerCFX::SetProposedLandscapingEnabled(bool bInEnabled)
+{
+	UPhaseManager* PhaseManager = GetWorld()->GetGameInstance()->GetSubsystem<UPhaseManager>();
+
+	if (bInEnabled != bProposedLandscapingEnabled)
+	{
+		bProposedLandscapingEnabled = bInEnabled;
+
+		//if (CachedFoliages.Num() == 0)
+		//{
+			//https://forums.unrealengine.com/t/solved-get-all-actors-from-sublevels/120606/3
+		const TArray<ULevelStreaming*>& streamedLevels = GetWorld()->GetStreamingLevels();
+		for (ULevelStreaming* streamingLevel : streamedLevels)
+		{
+			FString levelName = streamingLevel->GetWorldAssetPackageName();
+
+			TArray<AActor*> ProposedLandscaping;
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AStaticMeshActor::StaticClass(), "Proposed_Landscaping", ProposedLandscaping);
+			for (AActor* Foliage : ProposedLandscaping)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Foliage->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Proposed)
+							Foliage->SetActorHiddenInGame(!bProposedLandscapingEnabled);
+					}
+				}
+
+				else
+					Foliage->SetActorHiddenInGame(!bProposedLandscapingEnabled);
+
+			}
+		}
+
+	}
+}
+
 
 bool USceneManagerCFX::GetExistingFoliageEnabled() const
 {
@@ -203,6 +245,12 @@ bool USceneManagerCFX::GetProposedFoliageEnabled() const
 {
 	return bProposedFoliageEnabled;
 }
+
+bool USceneManagerCFX::GetProposedLandscapingEnabled() const
+{
+	return bProposedLandscapingEnabled;
+}
+
 
 void USceneManagerCFX::SetLabelsEnabled(bool bInEnabled)
 {
