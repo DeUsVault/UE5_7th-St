@@ -25,10 +25,10 @@ void UDialogPanel::NativeConstruct()
 void UDialogPanel::OnInputBoxTextChanged(const FText& InText)
 {
 	FString TempString = InText.ToString();
-	if (TempString.Len() > 18)
+	if (TempString.Len() > 25)
 	{
 		PlayAnimation(PanelAnim);
-		TempString = TempString.Left(18);
+		TempString = TempString.Left(25);
 		InputTextBox->SetText(FText::FromString(TempString));
 	}
 }
