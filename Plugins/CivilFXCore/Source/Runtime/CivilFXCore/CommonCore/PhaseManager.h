@@ -17,6 +17,7 @@ UENUM()
 enum class EPhaseType : uint8
 {
 	Proposed = 0,
+	Existing,
 	None
 };
 
