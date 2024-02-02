@@ -23,6 +23,8 @@ void USceneManagerCFX::Initialize(FSubsystemCollectionBase& Collection)
 	bExistingFoliageEnabled = true;
 	bProposedFoliageEnabled = true;
 	bProposedLandscapingEnabled = true;
+	bExistingLightsEnabled = true;
+	bProposedLightsEnabled = true;
 	bPedEnabled = false;
 	bRTEnabled = true;
 
@@ -228,6 +230,80 @@ void USceneManagerCFX::SetProposedLandscapingEnabled(bool bInEnabled)
 
 				else
 					Foliage->SetActorHiddenInGame(!bProposedLandscapingEnabled);
+
+			}
+		}
+
+	}
+}
+
+void USceneManagerCFX::SetExistingLightsEnabled(bool bInEnabled)
+{
+	UPhaseManager* PhaseManager = GetWorld()->GetGameInstance()->GetSubsystem<UPhaseManager>();
+
+	if (bInEnabled != bExistingLightsEnabled)
+	{
+		bExistingLightsEnabled = bInEnabled;
+
+		//if (CachedFoliages.Num() == 0)
+		//{
+			//https://forums.unrealengine.com/t/solved-get-all-actors-from-sublevels/120606/3
+		const TArray<ULevelStreaming*>& streamedLevels = GetWorld()->GetStreamingLevels();
+		for (ULevelStreaming* streamingLevel : streamedLevels)
+		{
+			FString levelName = streamingLevel->GetWorldAssetPackageName();
+
+			TArray<AActor*> Lights;
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AStaticMeshActor::StaticClass(), "Lights", Lights);
+			for (AActor* Light : Lights)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Light->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Existing)
+							Light->SetActorHiddenInGame(!bExistingLightsEnabled);
+					}
+				}
+
+			}
+		}
+
+	}
+}
+
+void USceneManagerCFX::SetProposedLightsEnabled(bool bInEnabled)
+{
+	UPhaseManager* PhaseManager = GetWorld()->GetGameInstance()->GetSubsystem<UPhaseManager>();
+
+	if (bInEnabled != bProposedLightsEnabled)
+	{
+		bProposedLightsEnabled = bInEnabled;
+
+		//if (CachedFoliages.Num() == 0)
+		//{
+			//https://forums.unrealengine.com/t/solved-get-all-actors-from-sublevels/120606/3
+		const TArray<ULevelStreaming*>& streamedLevels = GetWorld()->GetStreamingLevels();
+		for (ULevelStreaming* streamingLevel : streamedLevels)
+		{
+			FString levelName = streamingLevel->GetWorldAssetPackageName();
+
+			TArray<AActor*> Lights;
+			UGameplayStatics::GetAllActorsOfClassWithTag(streamingLevel, AStaticMeshActor::StaticClass(), "Lights", Lights);
+			for (AActor* Light : Lights)
+			{
+				UPhaseElement* PhaseElement = (UPhaseElement*)Light->GetComponentByClass(UPhaseElement::StaticClass());
+
+				if (PhaseElement)
+				{
+					for (EPhaseType Phase : PhaseElement->PhaseTypes)
+					{
+						if (Phase == EPhaseType::Proposed)
+							Light->SetActorHiddenInGame(!bProposedLightsEnabled);
+					}
+				}
 
 			}
 		}

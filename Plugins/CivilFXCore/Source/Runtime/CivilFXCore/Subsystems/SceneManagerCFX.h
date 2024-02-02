@@ -30,9 +30,15 @@ public:
 	void SetProposedFoliageEnabled(bool bInEnabled);
 	UFUNCTION(BlueprintCallable)
 	void SetProposedLandscapingEnabled(bool bInEnabled);
+	UFUNCTION(BlueprintCallable)
+	void SetExistingLightsEnabled(bool bInEnabled);
+	UFUNCTION(BlueprintCallable)
+	void SetProposedLightsEnabled(bool bInEnabled);
 	bool GetExistingFoliageEnabled() const;
 	bool GetProposedFoliageEnabled() const;
 	bool GetProposedLandscapingEnabled() const;
+	bool GetExistingLightsEnabled() const;
+	bool GetProposedLightsEnabled() const;
 
 
 	UFUNCTION(BlueprintCallable)
@@ -56,6 +62,8 @@ private:
 	bool bExistingFoliageEnabled;
 	bool bProposedFoliageEnabled;
 	bool bProposedLandscapingEnabled;
+	bool bExistingLightsEnabled;
+	bool bProposedLightsEnabled;
 	bool bLabelsEnabled;
 	bool bPedEnabled;
 	bool bRTEnabled;
